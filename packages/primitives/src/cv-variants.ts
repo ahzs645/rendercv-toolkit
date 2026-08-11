@@ -7,14 +7,17 @@ function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function readStringList(value: unknown) {
+function readStringList(value: unknown, field = 'list') {
   if (!Array.isArray(value)) {
     return undefined;
   }
+  if (value.length > 100) throw new Error(`${field} may contain at most 100 items.`);
 
   const items = value
-    .filter((item): item is string => typeof item === 'string')
-    .map((item) => item.trim())
+    .map((item) => {
+      if (typeof item !== 'string' || item.length > 120) throw new Error(`${field} entries must be short strings.`);
+      return item.trim();
+    })
     .filter(Boolean);
 
   return items.length > 0 ? items : undefined;
@@ -22,8 +25,9 @@ function readStringList(value: unknown) {
 
 function readExcludeEntries(value: unknown) {
   if (!isRecord(value)) return undefined;
+  if (Object.keys(value).length > 50) throw new Error('exclude_entries may contain at most 50 sections.');
   const entries = Object.fromEntries(Object.entries(value).flatMap(([key, fingerprints]) => {
-    const values = readStringList(fingerprints);
+    const values = readStringList(fingerprints, `exclude_entries.${key}`);
     return values ? [[key, values]] : [];
   }));
   return Object.keys(entries).length ? entries : undefined;
@@ -63,11 +67,11 @@ export function parseCvVariantsYaml(content: string, options: { maxBytes?: numbe
         [
           key,
           {
-            description: typeof value.description === 'string' ? value.description : undefined,
-            exclude_sections: readStringList(value.exclude_sections),
+            description: typeof value.description === 'string' ? value.description.slice(0, 500) : undefined,
+            exclude_sections: readStringList(value.exclude_sections, `${key}.exclude_sections`),
             exclude_entries: readExcludeEntries(value.exclude_entries),
-            tags: readStringList(value.tags),
-            flavors: readStringList(value.flavors)
+            tags: readStringList(value.tags, `${key}.tags`),
+            flavors: readStringList(value.flavors, `${key}.flavors`)
           }
         ]
       ];
