@@ -52,7 +52,7 @@ export function parseCvVariantsYaml(content: string, options: { maxBytes?: numbe
 
   const sourceEntries = Object.entries(variantsRoot);
   if (sourceEntries.length > (options.maxVariants ?? 100)) {
-    throw new Error(`Variants file exceeds the ${options.maxVariants ?? 100}-variant limit.`);
+    throw new Error(`Variants YAML may define at most ${options.maxVariants ?? 100} variants.`);
   }
   const variants = Object.fromEntries(
     sourceEntries.flatMap(([key, value]) => {
