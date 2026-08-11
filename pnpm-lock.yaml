@@ -24,7 +24,7 @@ importers:
   packages/renderer:
     dependencies:
       '@rendercv/primitives':
-        specifier: workspace:*
+        specifier: file:../primitives
         version: link:../primitives
       yaml:
         specifier: ^2.8.2

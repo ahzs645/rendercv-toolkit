@@ -14,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@rendercv/primitives": "workspace:*",
+    "@rendercv/primitives": "file:../primitives",
     "yaml": "^2.8.2"
   },
   "devDependencies": {
