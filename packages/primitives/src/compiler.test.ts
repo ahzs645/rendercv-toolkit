@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import YAML from 'yaml';
-import { compileRenderCvDocument, RENDERCV_COMPILER_VERSION } from './compiler';
+import { compileRenderCvDocument, compileRenderCvSections, RENDERCV_COMPILER_VERSION } from './compiler';
 import { entryFingerprint } from './fingerprints';
 import { parseCvVariantsYaml } from './cv-variants';
 
@@ -47,5 +47,19 @@ describe('RenderCV shared compiler', () => {
 
   it('rejects documents without a canonical cv mapping', () => {
     expect(() => compileRenderCvDocument({ yaml: 'design:\n  theme: classic\n' })).toThrow('top-level cv mapping');
+  });
+
+  it('compiles split editor sections through the same canonical pipeline', () => {
+    const result = compileRenderCvSections({
+      sections: {
+        cv: 'cv:\n  name: Example\n  sections:\n    projects:\n      - name: Shared compiler\n',
+        design: 'design:\n  theme: classic\n',
+        locale: 'locale:\n  language: english\n',
+        settings: 'settings: {}\n'
+      }
+    });
+    expect(YAML.parse(result.sections.cv).cv.name).toBe('Example');
+    expect(YAML.parse(result.sections.design).design.theme).toBe('classic');
+    expect(result.theme).toBe('classic');
   });
 });

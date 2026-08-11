@@ -14,3 +14,14 @@ export interface CompiledRenderCvDocument {
   theme: string | null;
   variantKey: string | null;
 }
+
+export interface RenderCvSections {
+  cv: string;
+  design?: string;
+  locale?: string;
+  settings?: string;
+}
+
+export interface CompiledRenderCvSections extends CompiledRenderCvDocument {
+  sections: Required<RenderCvSections>;
+}

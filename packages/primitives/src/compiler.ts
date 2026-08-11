@@ -7,7 +7,12 @@ import {
   stripPositionMarkersFromCvYaml,
   themeUsesPositionSpacingMarkers
 } from './normalize-compat-cv';
-import type { CompiledRenderCvDocument, CvVariantDefinition } from './types';
+import type {
+  CompiledRenderCvDocument,
+  CompiledRenderCvSections,
+  CvVariantDefinition,
+  RenderCvSections
+} from './types';
 
 export const RENDERCV_COMPILER_VERSION = '1.0.0';
 const DEFAULT_MAX_YAML_BYTES = 1024 * 1024;
@@ -97,4 +102,45 @@ export function compileRenderCvDocument(input: {
 
 export function validateRenderCvDocument(yaml: string, maxBytes?: number): void {
   parseDocument(yaml, maxBytes);
+}
+
+function parseOptionalSection(yaml: string | undefined, key: string): UnknownRecord {
+  if (!yaml?.trim()) return {};
+  const parsed = YAML.parse(yaml, { maxAliasCount: 50 });
+  if (!isRecord(parsed)) throw new Error(`RenderCV ${key} section must be a YAML mapping.`);
+  return parsed;
+}
+
+export function compileRenderCvSections(input: {
+  sections: RenderCvSections;
+  variant?: CvVariantDefinition | null;
+  variantKey?: string | null;
+  hiddenEntries?: Record<string, string[]>;
+  disabledSections?: string[];
+  maxBytes?: number;
+}): CompiledRenderCvSections {
+  const combined = {
+    ...parseOptionalSection(input.sections.cv, 'cv'),
+    ...parseOptionalSection(input.sections.design, 'design'),
+    ...parseOptionalSection(input.sections.locale, 'locale'),
+    ...parseOptionalSection(input.sections.settings, 'settings')
+  };
+  const compiled = compileRenderCvDocument({
+    yaml: YAML.stringify(combined),
+    variant: input.variant,
+    variantKey: input.variantKey,
+    hiddenEntries: input.hiddenEntries,
+    disabledSections: input.disabledSections,
+    maxBytes: input.maxBytes
+  });
+  const parsed = parseDocument(compiled.yaml, input.maxBytes);
+  return {
+    ...compiled,
+    sections: {
+      cv: YAML.stringify({ cv: parsed.cv }),
+      design: parsed.design === undefined ? '' : YAML.stringify({ design: parsed.design }),
+      locale: parsed.locale === undefined ? '' : YAML.stringify({ locale: parsed.locale }),
+      settings: parsed.settings === undefined ? '' : YAML.stringify({ settings: parsed.settings })
+    }
+  };
 }
