@@ -7,15 +7,15 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./bundle/index.js"
     },
     "./cli": {
       "types": "./dist/cli.d.ts",
-      "default": "./dist/cli.js"
+      "default": "./bundle/cli.js"
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && esbuild src/index.ts --bundle --format=esm --platform=neutral --outfile=bundle/index.js && esbuild src/cli.ts --bundle --format=esm --platform=node --outfile=bundle/cli.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "bun-types": "^1.3.0",
+    "esbuild": "^0.25.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
