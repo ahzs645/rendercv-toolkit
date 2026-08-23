@@ -89,7 +89,8 @@ export function compileRenderCvDocument(input: {
     source.locale === undefined ? undefined : YAML.stringify({ locale: source.locale });
   const normalized = normalizeCompatibilityCvYaml(YAML.stringify(source), {
     variant: input.variant,
-    locale: localeYaml
+    locale: localeYaml,
+    theme: readTheme(source)
   });
   const normalizedDocument = parseDocument(normalized, input.maxBytes);
   const theme = readTheme(normalizedDocument);

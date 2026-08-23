@@ -177,6 +177,8 @@ type NormalizeCompatibilityOptions = {
   variant?: CvVariantDefinition | null;
   /** The document's `locale:` section, used for dates this module renders itself. */
   locale?: string | null;
+  /** The selected theme, used where themes differ in which fields they render. */
+  theme?: string | null;
 };
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -1121,7 +1123,18 @@ const ALTERNATE_NAME_FIELDS = [
   'name_english'
 ];
 
-function normalizeAlternateNames(cvData: UnknownRecord) {
+/**
+ * Themes whose header template has no headline slot, so anything folded into
+ * `headline` is silently dropped from the render. For these the alternate
+ * names go next to the name instead, which every theme prints.
+ */
+const THEMES_WITHOUT_HEADLINE = new Set(['ahmadstyle', 'tylerstyle', 'phddeedy']);
+
+export function themeRendersHeadline(themeName: string | undefined | null) {
+  return !themeName || !THEMES_WITHOUT_HEADLINE.has(themeName);
+}
+
+function normalizeAlternateNames(cvData: UnknownRecord, themeName: string | undefined | null) {
   const alternates: string[] = [];
   for (const field of ALTERNATE_NAME_FIELDS) {
     const value = cvData[field];
@@ -1137,6 +1150,14 @@ function normalizeAlternateNames(cvData: UnknownRecord) {
   }
 
   if (alternates.length === 0) {
+    return;
+  }
+
+  if (!themeRendersHeadline(themeName)) {
+    const name = String(cvData.name ?? '').trim();
+    // `김윤서 (金允誓 · Yunseo Kim)` — how a CJK résumé prints the renderings
+    // together when there is only one line to put them on.
+    cvData.name = name ? `${name} (${alternates.join(' · ')})` : alternates.join(' · ');
     return;
   }
 
@@ -1656,7 +1677,7 @@ export function normalizeCompatibilityCvYaml(
 
   normalizeSocialConnections(cvData);
   normalizeAddressConnection(cvData);
-  normalizeAlternateNames(cvData);
+  normalizeAlternateNames(cvData, options?.theme);
   normalizeDateOfBirthConnection(cvData);
 
   const locale = resolveDateLocale(options?.locale);

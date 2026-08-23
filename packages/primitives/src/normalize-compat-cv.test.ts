@@ -225,3 +225,33 @@ describe('normalizeCompatibilityCvYaml CJK résumé shapes', () => {
     ]);
   });
 });
+
+describe('normalizeCompatibilityCvYaml alternate names per theme', () => {
+  const cv = { name: '김윤서', name_hanja: '金允誓', name_english: 'Yunseo Kim' };
+
+  function normalizeFor(theme?: string) {
+    return (
+      YAML.parse(
+        normalizeCompatibilityCvYaml(YAML.stringify({ cv }), { theme })
+      ) as { cv: Record<string, unknown> }
+    ).cv;
+  }
+
+  it('uses the headline on themes that render one', () => {
+    expect(normalizeFor('classic')).toMatchObject({
+      name: '김윤서',
+      headline: '金允誓 · Yunseo Kim'
+    });
+    expect(normalizeFor()).toMatchObject({ headline: '金允誓 · Yunseo Kim' });
+  });
+
+  it('puts them next to the name on themes with no headline slot', () => {
+    // ahmadstyle, tylerstyle and phddeedy have no headline in their header
+    // template, so a folded headline would never reach the page.
+    for (const theme of ['ahmadstyle', 'tylerstyle', 'phddeedy']) {
+      const result = normalizeFor(theme);
+      expect(result.name).toBe('김윤서 (金允誓 · Yunseo Kim)');
+      expect(result.headline).toBeUndefined();
+    }
+  });
+});

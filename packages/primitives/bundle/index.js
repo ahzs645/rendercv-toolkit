@@ -7723,7 +7723,11 @@ var ALTERNATE_NAME_FIELDS = [
   "name_romanized",
   "name_english"
 ];
-function normalizeAlternateNames(cvData) {
+var THEMES_WITHOUT_HEADLINE = /* @__PURE__ */ new Set(["ahmadstyle", "tylerstyle", "phddeedy"]);
+function themeRendersHeadline(themeName) {
+  return !themeName || !THEMES_WITHOUT_HEADLINE.has(themeName);
+}
+function normalizeAlternateNames(cvData, themeName) {
   const alternates = [];
   for (const field of ALTERNATE_NAME_FIELDS) {
     const value = cvData[field];
@@ -7737,6 +7741,11 @@ function normalizeAlternateNames(cvData) {
     }
   }
   if (alternates.length === 0) {
+    return;
+  }
+  if (!themeRendersHeadline(themeName)) {
+    const name = String(cvData.name ?? "").trim();
+    cvData.name = name ? `${name} (${alternates.join(" \xB7 ")})` : alternates.join(" \xB7 ");
     return;
   }
   const headline = typeof cvData.headline === "string" ? cvData.headline.trim() : "";
@@ -8116,7 +8125,7 @@ function normalizeCompatibilityCvYaml(yamlText, options) {
   }
   normalizeSocialConnections(cvData);
   normalizeAddressConnection(cvData);
-  normalizeAlternateNames(cvData);
+  normalizeAlternateNames(cvData, options?.theme);
   normalizeDateOfBirthConnection(cvData);
   const locale = resolveDateLocale(options?.locale);
   const variantActive = Boolean(options?.variant);
@@ -8214,7 +8223,8 @@ function compileRenderCvDocument(input) {
   const localeYaml = source.locale === void 0 ? void 0 : browser_default.stringify({ locale: source.locale });
   const normalized = normalizeCompatibilityCvYaml(browser_default.stringify(source), {
     variant: input.variant,
-    locale: localeYaml
+    locale: localeYaml,
+    theme: readTheme(source)
   });
   const normalizedDocument = parseDocument2(normalized, input.maxBytes);
   const theme = readTheme(normalizedDocument);
@@ -8349,6 +8359,7 @@ export {
   resolveDateLocale,
   restoreAhmadStylePositionMarkersInCvYaml,
   stripPositionMarkersFromCvYaml,
+  themeRendersHeadline,
   themeUsesPositionSpacingMarkers,
   topLevelEntryListFromKey,
   topLevelEntryListKey,

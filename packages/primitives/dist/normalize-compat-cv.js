@@ -897,7 +897,16 @@ const ALTERNATE_NAME_FIELDS = [
     'name_romanized',
     'name_english'
 ];
-function normalizeAlternateNames(cvData) {
+/**
+ * Themes whose header template has no headline slot, so anything folded into
+ * `headline` is silently dropped from the render. For these the alternate
+ * names go next to the name instead, which every theme prints.
+ */
+const THEMES_WITHOUT_HEADLINE = new Set(['ahmadstyle', 'tylerstyle', 'phddeedy']);
+export function themeRendersHeadline(themeName) {
+    return !themeName || !THEMES_WITHOUT_HEADLINE.has(themeName);
+}
+function normalizeAlternateNames(cvData, themeName) {
     const alternates = [];
     for (const field of ALTERNATE_NAME_FIELDS) {
         const value = cvData[field];
@@ -911,6 +920,13 @@ function normalizeAlternateNames(cvData) {
         }
     }
     if (alternates.length === 0) {
+        return;
+    }
+    if (!themeRendersHeadline(themeName)) {
+        const name = String(cvData.name ?? '').trim();
+        // `김윤서 (金允誓 · Yunseo Kim)` — how a CJK résumé prints the renderings
+        // together when there is only one line to put them on.
+        cvData.name = name ? `${name} (${alternates.join(' · ')})` : alternates.join(' · ');
         return;
     }
     const headline = typeof cvData.headline === 'string' ? cvData.headline.trim() : '';
@@ -1319,7 +1335,7 @@ export function normalizeCompatibilityCvYaml(yamlText, options) {
     }
     normalizeSocialConnections(cvData);
     normalizeAddressConnection(cvData);
-    normalizeAlternateNames(cvData);
+    normalizeAlternateNames(cvData, options?.theme);
     normalizeDateOfBirthConnection(cvData);
     const locale = resolveDateLocale(options?.locale);
     const variantActive = Boolean(options?.variant);
