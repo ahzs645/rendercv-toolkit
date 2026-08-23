@@ -1181,47 +1181,53 @@ function humanizeKey(key: string) {
   return spaced.replace(/\b[a-z]/g, (character) => character.toUpperCase());
 }
 
+function flattenMappingSection(section: UnknownRecord, collected: [string, string][] = []) {
+  for (const [key, value] of Object.entries(section)) {
+    if (isRecord(value)) {
+      flattenMappingSection(value, collected);
+      continue;
+    }
+
+    const text = Array.isArray(value)
+      ? value
+          .filter((item) => item != null && !Array.isArray(item) && !isRecord(item))
+          .map((item) => String(item).trim())
+          .filter(Boolean)
+          .join(', ')
+      : value == null
+        ? ''
+        : String(value).trim();
+
+    if (text) {
+      collected.push([humanizeKey(key), text]);
+    }
+  }
+
+  return collected;
+}
+
 /**
  * Turn a section written as a mapping into RenderCV entries.
  *
  * Korean 자기소개서 sections are naturally authored as `prompt: answer` pairs
- * rather than a list, and RenderCV only accepts a list of entries. Scalars
- * become normal entries (heading + prose) and lists of scalars become a
- * one-line `label`/`details` row, which is how a keyword list reads best.
+ * rather than a list, and RenderCV only accepts a list of entries.
+ *
+ * RenderCV infers a section's entry type from its first entry and then
+ * validates every other entry against that one type, so the entries here have
+ * to be uniform. Short answers become one-line `label`/`details` rows, which is
+ * how a keyword list reads best; as soon as one answer is long enough to be
+ * prose the whole section becomes normal entries instead, so the text gets a
+ * paragraph rather than being squeezed onto a single line.
  */
+const ONE_LINE_ANSWER_MAX_LENGTH = 120;
+
 function normalizeMappingSection(section: UnknownRecord) {
-  const entries: UnknownRecord[] = [];
+  const answers = flattenMappingSection(section);
+  const fitsOnOneLine = answers.every(([, text]) => text.length <= ONE_LINE_ANSWER_MAX_LENGTH);
 
-  for (const [key, value] of Object.entries(section)) {
-    const label = humanizeKey(key);
-
-    if (Array.isArray(value)) {
-      const details = value
-        .filter((item) => item != null && !Array.isArray(item) && !isRecord(item))
-        .map((item) => String(item).trim())
-        .filter(Boolean);
-      if (details.length > 0) {
-        entries.push({ label, details: details.join(', ') });
-      }
-      continue;
-    }
-
-    if (isRecord(value)) {
-      entries.push(...normalizeMappingSection(value));
-      continue;
-    }
-
-    if (value == null) {
-      continue;
-    }
-
-    const text = String(value).trim();
-    if (text) {
-      entries.push({ name: label, summary: text });
-    }
-  }
-
-  return entries;
+  return answers.map(([label, text]) =>
+    fitsOnOneLine ? { label, details: text } : { name: label, summary: text }
+  );
 }
 
 function normalizeMediaEntries(

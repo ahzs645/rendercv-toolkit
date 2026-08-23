@@ -7768,30 +7768,26 @@ function humanizeKey(key) {
   }
   return spaced.replace(/\b[a-z]/g, (character) => character.toUpperCase());
 }
-function normalizeMappingSection(section) {
-  const entries = [];
+function flattenMappingSection(section, collected = []) {
   for (const [key, value] of Object.entries(section)) {
-    const label = humanizeKey(key);
-    if (Array.isArray(value)) {
-      const details = value.filter((item) => item != null && !Array.isArray(item) && !isRecord3(item)).map((item) => String(item).trim()).filter(Boolean);
-      if (details.length > 0) {
-        entries.push({ label, details: details.join(", ") });
-      }
-      continue;
-    }
     if (isRecord3(value)) {
-      entries.push(...normalizeMappingSection(value));
+      flattenMappingSection(value, collected);
       continue;
     }
-    if (value == null) {
-      continue;
-    }
-    const text = String(value).trim();
+    const text = Array.isArray(value) ? value.filter((item) => item != null && !Array.isArray(item) && !isRecord3(item)).map((item) => String(item).trim()).filter(Boolean).join(", ") : value == null ? "" : String(value).trim();
     if (text) {
-      entries.push({ name: label, summary: text });
+      collected.push([humanizeKey(key), text]);
     }
   }
-  return entries;
+  return collected;
+}
+var ONE_LINE_ANSWER_MAX_LENGTH = 120;
+function normalizeMappingSection(section) {
+  const answers = flattenMappingSection(section);
+  const fitsOnOneLine = answers.every(([, text]) => text.length <= ONE_LINE_ANSWER_MAX_LENGTH);
+  return answers.map(
+    ([label, text]) => fitsOnOneLine ? { label, details: text } : { name: label, summary: text }
+  );
 }
 function normalizeMediaEntries(entries, preferredFlavors, selectedTags, variantActive) {
   return entries.flatMap((entry) => {

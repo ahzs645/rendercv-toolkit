@@ -176,7 +176,7 @@ describe('normalizeCompatibilityCvYaml CJK résumé shapes', () => {
     ]);
   });
 
-  it('turns a section written as a mapping into entries', () => {
+  it('turns a section of short answers into one-line entries', () => {
     const cv = normalizeCv({
       name: '김윤서',
       sections: {
@@ -189,7 +189,22 @@ describe('normalizeCompatibilityCvYaml CJK résumé shapes', () => {
 
     expect(cv.sections.자기소개서).toEqual([
       { label: 'Keywords', details: '성실함, 열정' },
-      { name: '지원동기', summary: '선한 영향력을 끼치고 싶습니다.' }
+      { label: '지원동기', details: '선한 영향력을 끼치고 싶습니다.' }
+    ]);
+  });
+
+  it('keeps a mapping section uniform when one answer is prose', () => {
+    // RenderCV infers the entry type from the first entry and validates the
+    // rest against it, so a section may not mix one-line and normal entries.
+    const essay = '가'.repeat(200);
+    const cv = normalizeCv({
+      name: '김윤서',
+      sections: { 자기소개서: { keywords: ['성실함', '열정'], 지원동기: essay } }
+    });
+
+    expect(cv.sections.자기소개서).toEqual([
+      { name: 'Keywords', summary: '성실함, 열정' },
+      { name: '지원동기', summary: essay }
     ]);
   });
 
