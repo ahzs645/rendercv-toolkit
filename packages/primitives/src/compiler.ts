@@ -83,13 +83,20 @@ export function compileRenderCvDocument(input: {
   removeEntries(source, input.variant?.exclude_entries);
   removeSections(source, input.disabledSections);
 
-  const normalized = normalizeCompatibilityCvYaml(YAML.stringify(source), { variant: input.variant });
+  // The `locale:` section travels inside the same document here, so the dates
+  // the normalizer renders itself follow the CV's language.
+  const localeYaml =
+    source.locale === undefined ? undefined : YAML.stringify({ locale: source.locale });
+  const normalized = normalizeCompatibilityCvYaml(YAML.stringify(source), {
+    variant: input.variant,
+    locale: localeYaml
+  });
   const normalizedDocument = parseDocument(normalized, input.maxBytes);
   const theme = readTheme(normalizedDocument);
   const withoutMarkers = stripPositionMarkersFromCvYaml(normalized);
   const positioned = themeUsesPositionSpacingMarkers(theme ?? undefined)
     ? restoreAhmadStylePositionMarkersInCvYaml(withoutMarkers)
-    : repairFlattenedPositionDatesInCvYaml(withoutMarkers);
+    : repairFlattenedPositionDatesInCvYaml(withoutMarkers, localeYaml);
   const yaml = stripEmptySections(positioned);
   parseDocument(yaml, input.maxBytes);
   return {

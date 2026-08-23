@@ -6632,9 +6632,175 @@ function topLevelEntryListFromKey(key) {
   return TOP_LEVEL_ENTRY_LISTS.includes(value) ? value : null;
 }
 
+// src/locales.ts
+var LOCALE_TABLE = {
+  "english": {
+    monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    present: "present",
+    presentDisplay: "Present"
+  },
+  "arabic": {
+    monthNames: ["\u064A\u0646\u0627\u064A\u0631", "\u0641\u0628\u0631\u0627\u064A\u0631", "\u0645\u0627\u0631\u0633", "\u0623\u0628\u0631\u064A\u0644", "\u0645\u0627\u064A\u0648", "\u064A\u0648\u0646\u064A\u0648", "\u064A\u0648\u0644\u064A\u0648", "\u0623\u063A\u0633\u0637\u0633", "\u0633\u0628\u062A\u0645\u0628\u0631", "\u0623\u0643\u062A\u0648\u0628\u0631", "\u0646\u0648\u0641\u0645\u0628\u0631", "\u062F\u064A\u0633\u0645\u0628\u0631"],
+    present: "\u0627\u0644\u062D\u0627\u0636\u0631",
+    presentDisplay: "\u0627\u0644\u062D\u0627\u0636\u0631"
+  },
+  "danish": {
+    monthNames: ["Januar", "Februar", "Marts", "April", "Maj", "Juni", "Juli", "August", "September", "Oktober", "November", "December"],
+    present: "nuv\xE6rende",
+    presentDisplay: "nuv\xE6rende"
+  },
+  "dutch": {
+    monthNames: ["Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December"],
+    present: "heden",
+    presentDisplay: "heden"
+  },
+  "french": {
+    monthNames: ["Janvier", "F\xE9vrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Ao\xFBt", "Septembre", "Octobre", "Novembre", "D\xE9cembre"],
+    present: "pr\xE9sent",
+    presentDisplay: "pr\xE9sent"
+  },
+  "german": {
+    monthNames: ["Januar", "Februar", "M\xE4rz", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+    present: "gegenw\xE4rtig",
+    presentDisplay: "gegenw\xE4rtig"
+  },
+  "hebrew": {
+    monthNames: ["\u05D9\u05E0\u05D5\u05D0\u05E8", "\u05E4\u05D1\u05E8\u05D5\u05D0\u05E8", "\u05DE\u05E8\u05E5", "\u05D0\u05E4\u05E8\u05D9\u05DC", "\u05DE\u05D0\u05D9", "\u05D9\u05D5\u05E0\u05D9", "\u05D9\u05D5\u05DC\u05D9", "\u05D0\u05D5\u05D2\u05D5\u05E1\u05D8", "\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8", "\u05D0\u05D5\u05E7\u05D8\u05D5\u05D1\u05E8", "\u05E0\u05D5\u05D1\u05DE\u05D1\u05E8", "\u05D3\u05E6\u05DE\u05D1\u05E8"],
+    present: "\u05D4\u05D5\u05D5\u05D4",
+    presentDisplay: "\u05D4\u05D5\u05D5\u05D4"
+  },
+  "hindi": {
+    monthNames: ["\u091C\u0928\u0935\u0930\u0940", "\u092B\u0930\u0935\u0930\u0940", "\u092E\u093E\u0930\u094D\u091A", "\u0905\u092A\u094D\u0930\u0948\u0932", "\u092E\u0908", "\u091C\u0942\u0928", "\u091C\u0941\u0932\u093E\u0908", "\u0905\u0917\u0938\u094D\u0924", "\u0938\u093F\u0924\u0902\u092C\u0930", "\u0905\u0915\u094D\u091F\u0942\u092C\u0930", "\u0928\u0935\u0902\u092C\u0930", "\u0926\u093F\u0938\u0902\u092C\u0930"],
+    present: "\u0935\u0930\u094D\u0924\u092E\u093E\u0928",
+    presentDisplay: "\u0935\u0930\u094D\u0924\u092E\u093E\u0928"
+  },
+  "hungarian": {
+    monthNames: ["Janu\xE1r", "Febru\xE1r", "M\xE1rcius", "\xC1prilis", "M\xE1jus", "J\xFAnius", "J\xFAlius", "Augusztus", "Szeptember", "Okt\xF3ber", "November", "December"],
+    present: "jelenleg",
+    presentDisplay: "jelenleg"
+  },
+  "indonesian": {
+    monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+    present: "sekarang",
+    presentDisplay: "sekarang"
+  },
+  "italian": {
+    monthNames: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"],
+    present: "presente",
+    presentDisplay: "presente"
+  },
+  "japanese": {
+    monthNames: ["1\u6708", "2\u6708", "3\u6708", "4\u6708", "5\u6708", "6\u6708", "7\u6708", "8\u6708", "9\u6708", "10\u6708", "11\u6708", "12\u6708"],
+    present: "\u73FE\u5728",
+    presentDisplay: "\u73FE\u5728"
+  },
+  "korean": {
+    monthNames: ["1\uC6D4", "2\uC6D4", "3\uC6D4", "4\uC6D4", "5\uC6D4", "6\uC6D4", "7\uC6D4", "8\uC6D4", "9\uC6D4", "10\uC6D4", "11\uC6D4", "12\uC6D4"],
+    present: "\uD604\uC7AC",
+    presentDisplay: "\uD604\uC7AC"
+  },
+  "mandarin_chinese": {
+    monthNames: ["\u4E00\u6708", "\u4E8C\u6708", "\u4E09\u6708", "\u56DB\u6708", "\u4E94\u6708", "\u516D\u6708", "\u4E03\u6708", "\u516B\u6708", "\u4E5D\u6708", "\u5341\u6708", "\u5341\u4E00\u6708", "\u5341\u4E8C\u6708"],
+    present: "\u81F3\u4ECA",
+    presentDisplay: "\u81F3\u4ECA"
+  },
+  "norwegian_bokm\xE5l": {
+    monthNames: ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"],
+    present: "n\xE5v\xE6rende",
+    presentDisplay: "n\xE5v\xE6rende"
+  },
+  "norwegian_nynorsk": {
+    monthNames: ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"],
+    present: "n\xE5verande",
+    presentDisplay: "n\xE5verande"
+  },
+  "persian": {
+    monthNames: ["\u0698\u0627\u0646\u0648\u06CC\u0647", "\u0641\u0648\u0631\u06CC\u0647", "\u0645\u0627\u0631\u0633", "\u0622\u0648\u0631\u06CC\u0644", "\u0645\u0647", "\u0698\u0648\u0626\u0646", "\u0698\u0648\u0626\u06CC\u0647", "\u0627\u0648\u062A", "\u0633\u067E\u062A\u0627\u0645\u0628\u0631", "\u0627\u06A9\u062A\u0628\u0631", "\u0646\u0648\u0627\u0645\u0628\u0631", "\u062F\u0633\u0627\u0645\u0628\u0631"],
+    present: "\u062D\u0627\u0644",
+    presentDisplay: "\u062D\u0627\u0644"
+  },
+  "portuguese": {
+    monthNames: ["Janeiro", "Fevereiro", "Mar\xE7o", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+    present: "presente",
+    presentDisplay: "presente"
+  },
+  "russian": {
+    monthNames: ["\u042F\u043D\u0432\u0430\u0440\u044C", "\u0424\u0435\u0432\u0440\u0430\u043B\u044C", "\u041C\u0430\u0440\u0442", "\u0410\u043F\u0440\u0435\u043B\u044C", "\u041C\u0430\u0439", "\u0418\u044E\u043D\u044C", "\u0418\u044E\u043B\u044C", "\u0410\u0432\u0433\u0443\u0441\u0442", "\u0421\u0435\u043D\u0442\u044F\u0431\u0440\u044C", "\u041E\u043A\u0442\u044F\u0431\u0440\u044C", "\u041D\u043E\u044F\u0431\u0440\u044C", "\u0414\u0435\u043A\u0430\u0431\u0440\u044C"],
+    present: "\u043D\u0430\u0441\u0442\u043E\u044F\u0449\u0435\u0435 \u0432\u0440\u0435\u043C\u044F",
+    presentDisplay: "\u043D\u0430\u0441\u0442\u043E\u044F\u0449\u0435\u0435 \u0432\u0440\u0435\u043C\u044F"
+  },
+  "spanish": {
+    monthNames: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+    present: "presente",
+    presentDisplay: "presente"
+  },
+  "turkish": {
+    monthNames: ["Ocak", "\u015Eubat", "Mart", "Nisan", "May\u0131s", "Haziran", "Temmuz", "A\u011Fustos", "Eyl\xFCl", "Ekim", "Kas\u0131m", "Aral\u0131k"],
+    present: "halen",
+    presentDisplay: "halen"
+  },
+  "vietnamese": {
+    monthNames: ["Th\xE1ng M\u1ED9t", "Th\xE1ng Hai", "Th\xE1ng Ba", "Th\xE1ng T\u01B0", "Th\xE1ng N\u0103m", "Th\xE1ng S\xE1u", "Th\xE1ng B\u1EA3y", "Th\xE1ng T\xE1m", "Th\xE1ng Ch\xEDn", "Th\xE1ng M\u01B0\u1EDDi", "Th\xE1ng M\u01B0\u1EDDi M\u1ED9t", "Th\xE1ng M\u01B0\u1EDDi Hai"],
+    present: "hi\u1EC7n t\u1EA1i",
+    presentDisplay: "hi\u1EC7n t\u1EA1i"
+  }
+};
+var ENGLISH_DATE_LOCALE = {
+  language: "english",
+  monthNames: LOCALE_TABLE.english.monthNames,
+  present: LOCALE_TABLE.english.presentDisplay
+};
+function availableDateLocales() {
+  return Object.keys(LOCALE_TABLE);
+}
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readStringList(value, expectedLength) {
+  if (!Array.isArray(value) || value.length !== expectedLength) {
+    return void 0;
+  }
+  const entries = value.map((item) => item == null ? "" : String(item).trim());
+  return entries.every((item) => item.length > 0) ? entries : void 0;
+}
+function resolveDateLocale(localeYaml) {
+  if (!localeYaml?.trim()) {
+    return ENGLISH_DATE_LOCALE;
+  }
+  let parsed;
+  try {
+    parsed = browser_default.parse(localeYaml);
+  } catch {
+    return ENGLISH_DATE_LOCALE;
+  }
+  const locale = isRecord(parsed) && isRecord(parsed.locale) ? parsed.locale : void 0;
+  if (!locale) {
+    return ENGLISH_DATE_LOCALE;
+  }
+  const language = typeof locale.language === "string" && locale.language.trim() ? locale.language.trim() : "english";
+  const entry = LOCALE_TABLE[language];
+  const monthNames = readStringList(locale.month_names, 12) ?? entry?.monthNames;
+  if (!monthNames) {
+    return ENGLISH_DATE_LOCALE;
+  }
+  const shipped = entry?.present;
+  const authored = typeof locale.present === "string" ? locale.present.trim() : "";
+  const present = authored && authored !== shipped ? authored : entry?.presentDisplay ?? ENGLISH_DATE_LOCALE.present;
+  return { language, monthNames, present };
+}
+function monthNumbersByName(locale) {
+  const lookup = {};
+  for (const names of [ENGLISH_DATE_LOCALE.monthNames, locale.monthNames]) {
+    names.forEach((name, index) => {
+      lookup[name] = String(index + 1).padStart(2, "0");
+    });
+  }
+  return lookup;
+}
+
 // src/variant-visibility.ts
 var ARCHIVED_TAG = "archived";
-function isRecord(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeStringList(value) {
@@ -6679,7 +6845,7 @@ function computeVariantVisibility(cvRoot, variant) {
     const listExcluded = new Set(excludeEntries[key] ?? []);
     for (const entry of entries) {
       const fingerprint = entryFingerprint(entry);
-      if (!isRecord(entry)) {
+      if (!isRecord2(entry)) {
         if (listExcluded.has(fingerprint)) {
           (hiddenEntries[key] ??= /* @__PURE__ */ new Set()).add(fingerprint);
         }
@@ -6696,8 +6862,8 @@ function computeVariantVisibility(cvRoot, variant) {
       }
     }
   }
-  const sections = isRecord(cvRoot) ? cvRoot.sections : void 0;
-  if (isRecord(sections)) {
+  const sections = isRecord2(cvRoot) ? cvRoot.sections : void 0;
+  if (isRecord2(sections)) {
     for (const [sectionKey, entries] of Object.entries(sections)) {
       if (excludedSections.has(sectionKey)) {
         continue;
@@ -6705,7 +6871,7 @@ function computeVariantVisibility(cvRoot, variant) {
       collect(sectionKey, entries);
     }
   }
-  if (isRecord(cvRoot)) {
+  if (isRecord2(cvRoot)) {
     for (const list of TOP_LEVEL_ENTRY_LISTS) {
       collect(topLevelEntryListKey(list), cvRoot[list]);
     }
@@ -6755,23 +6921,6 @@ var TOP_LEVEL_SOCIAL_FIELD_MAP = {
 };
 var POSITION_SPACING_SAME_MARKER = "RCVSPACINGSAME:";
 var POSITION_SPACING_DIFF_MARKER = "RCVSPACINGDIFF:";
-var MONTH_NAMES = {
-  "01": "January",
-  "02": "February",
-  "03": "March",
-  "04": "April",
-  "05": "May",
-  "06": "June",
-  "07": "July",
-  "08": "August",
-  "09": "September",
-  "10": "October",
-  "11": "November",
-  "12": "December"
-};
-var MONTH_NUMBERS_BY_NAME = Object.fromEntries(
-  Object.entries(MONTH_NAMES).map(([month, name]) => [name, month])
-);
 var ENTRY_META_FIELDS = /* @__PURE__ */ new Set([
   "start_date",
   "end_date",
@@ -6880,7 +7029,7 @@ var ENTRY_FIELD_SYNONYMS = {
   label: ["key", "category", "term"],
   details: ["value", "description"]
 };
-function isRecord2(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function joinParts(parts, separator = " \xB7 ") {
@@ -6913,10 +7062,10 @@ function cleanMapping(mapping) {
   return cleaned;
 }
 function asCustomConnections(cvData) {
-  return Array.isArray(cvData.custom_connections) ? [...cvData.custom_connections.filter(isRecord2)] : [];
+  return Array.isArray(cvData.custom_connections) ? [...cvData.custom_connections.filter(isRecord3)] : [];
 }
 function asSocialNetworks(cvData) {
-  return Array.isArray(cvData.social_networks) ? [...cvData.social_networks.filter(isRecord2)] : [];
+  return Array.isArray(cvData.social_networks) ? [...cvData.social_networks.filter(isRecord3)] : [];
 }
 function tryParseUrlLike(value) {
   const trimmed = value.trim();
@@ -6949,7 +7098,7 @@ function stringifyNumbers(value) {
   if (Array.isArray(value)) {
     return value.map((item) => stringifyNumbers(item));
   }
-  if (isRecord2(value)) {
+  if (isRecord3(value)) {
     return Object.fromEntries(
       Object.entries(value).map(([key, item]) => [key, stringifyNumbers(item)])
     );
@@ -6963,7 +7112,7 @@ function sanitizeDateSentinels(value) {
   if (Array.isArray(value)) {
     return value.map((item) => sanitizeDateSentinels(item));
   }
-  if (!isRecord2(value)) {
+  if (!isRecord3(value)) {
     return value;
   }
   return Object.fromEntries(
@@ -6976,7 +7125,7 @@ function sanitizeDateSentinels(value) {
   );
 }
 function pickFlavorValue(value, preferredFlavors) {
-  if (!isRecord2(value) || !("flavors" in value) || !isRecord2(value.flavors)) {
+  if (!isRecord3(value) || !("flavors" in value) || !isRecord3(value.flavors)) {
     return value;
   }
   const matchedValues = [];
@@ -6998,19 +7147,19 @@ function pickFlavorValue(value, preferredFlavors) {
   return Object.values(value.flavors)[0] ?? value;
 }
 function normalizeFlavoredFields(entry, preferredFlavors) {
-  if (!isRecord2(entry)) {
+  if (!isRecord3(entry)) {
     return entry;
   }
   const normalized = { ...entry };
   for (const [fieldName, fieldValue] of Object.entries(normalized)) {
-    if (isRecord2(fieldValue) && "flavors" in fieldValue) {
+    if (isRecord3(fieldValue) && "flavors" in fieldValue) {
       normalized[fieldName] = pickFlavorValue(fieldValue, preferredFlavors);
     }
   }
   return normalized;
 }
 function stripCompatFields(entry) {
-  if (!isRecord2(entry)) {
+  if (!isRecord3(entry)) {
     return entry;
   }
   const normalized = { ...entry };
@@ -7020,7 +7169,7 @@ function stripCompatFields(entry) {
   delete normalized.show_date_in_position;
   return normalized;
 }
-function formatDateForDisplay(dateString) {
+function formatDateForDisplay(dateString, locale) {
   if (dateString == null) {
     return "";
   }
@@ -7029,23 +7178,24 @@ function formatDateForDisplay(dateString) {
     return "";
   }
   if (normalized.toLowerCase() === "present") {
-    return "Present";
+    return locale.present;
   }
   const parts = normalized.split("-");
   if (parts.length === 1) {
     return parts[0];
   }
   if (parts.length >= 2) {
-    const monthName = MONTH_NAMES[parts[1].padStart(2, "0")];
+    const monthIndex = Number.parseInt(parts[1], 10) - 1;
+    const monthName = locale.monthNames[monthIndex];
     if (monthName) {
       return `${monthName} ${parts[0]}`;
     }
   }
   return normalized;
 }
-function formatDateRangeForDisplay(startDate, endDate) {
-  const start = formatDateForDisplay(startDate);
-  const end = formatDateForDisplay(endDate);
+function formatDateRangeForDisplay(startDate, endDate, locale) {
+  const start = formatDateForDisplay(startDate, locale);
+  const end = formatDateForDisplay(endDate, locale);
   if (start && end) {
     return `${start} \u2013 ${end}`;
   }
@@ -7083,7 +7233,7 @@ function appendSummary(entry, parts) {
 }
 function normalizeExperienceEntry(entry) {
   const normalized = stripCompatFields(entry);
-  if (!isRecord2(normalized)) {
+  if (!isRecord3(normalized)) {
     return entry;
   }
   const normalizedRecord = appendSummary(normalized, [
@@ -7096,8 +7246,40 @@ function normalizeExperienceEntry(entry) {
   delete normalizedRecord.number_of_students;
   return cleanMapping(normalizedRecord);
 }
+var EXPERIENCE_SHAPE_FIELDS = /* @__PURE__ */ new Set([
+  "company",
+  "position",
+  "title",
+  "date",
+  "start_date",
+  "end_date",
+  "location",
+  "summary",
+  "highlights",
+  "url",
+  "doi",
+  "positions"
+]);
+function foldStrayExperienceFields(entry) {
+  const kept = { ...entry };
+  const strayParts = [];
+  for (const [key, value] of Object.entries({ ...kept })) {
+    if (EXPERIENCE_SHAPE_FIELDS.has(key)) {
+      continue;
+    }
+    if (value == null || value === "" || Array.isArray(value) || isRecord3(value)) {
+      continue;
+    }
+    strayParts.push(`${key.replaceAll("_", " ")}: ${String(value)}`);
+    delete kept[key];
+  }
+  if (strayParts.length > 0) {
+    kept.summary = joinParts([kept.summary, ...strayParts]);
+  }
+  return cleanMapping(kept);
+}
 function applyFieldSynonyms(entry) {
-  if (!isRecord2(entry)) {
+  if (!isRecord3(entry)) {
     return entry;
   }
   const updated = { ...entry };
@@ -7120,7 +7302,7 @@ function applyFieldSynonyms(entry) {
   return updated;
 }
 function detectKnownEntryType(entry) {
-  if (!isRecord2(entry)) {
+  if (!isRecord3(entry)) {
     return void 0;
   }
   const has = (...keys) => keys.every((key) => entry[key] != null && entry[key] !== "");
@@ -7130,7 +7312,7 @@ function entryMatchesKnownType(entry) {
   if (typeof entry === "string") {
     return true;
   }
-  if (!isRecord2(entry)) {
+  if (!isRecord3(entry)) {
     return false;
   }
   const position = entry.position;
@@ -7150,7 +7332,7 @@ function foldStrayFieldsIntoKnownEntry(entry, entryType) {
     if (knownFields.has(key)) {
       continue;
     }
-    if (value == null || value === "" || Array.isArray(value) || isRecord2(value)) {
+    if (value == null || value === "" || Array.isArray(value) || isRecord3(value)) {
       continue;
     }
     strayParts.push(`${key.replaceAll("_", " ")}: ${String(value)}`);
@@ -7162,7 +7344,7 @@ function foldStrayFieldsIntoKnownEntry(entry, entryType) {
   return cleanMapping(kept);
 }
 function coerceUnknownEntry(entry) {
-  if (!isRecord2(entry)) {
+  if (!isRecord3(entry)) {
     return typeof entry === "string" ? entry : void 0;
   }
   const coerced = { ...entry };
@@ -7170,7 +7352,7 @@ function coerceUnknownEntry(entry) {
   let titleValue;
   for (const candidate of TITLE_FIELD_CANDIDATES) {
     const value = coerced[candidate];
-    if (value == null || value === "" || Array.isArray(value) || isRecord2(value)) {
+    if (value == null || value === "" || Array.isArray(value) || isRecord3(value)) {
       continue;
     }
     titleSource = candidate;
@@ -7182,7 +7364,7 @@ function coerceUnknownEntry(entry) {
       if (ENTRY_META_FIELDS.has(key)) {
         continue;
       }
-      if (value == null || value === "" || Array.isArray(value) || isRecord2(value)) {
+      if (value == null || value === "" || Array.isArray(value) || isRecord3(value)) {
         continue;
       }
       titleSource = key;
@@ -7202,7 +7384,7 @@ function coerceUnknownEntry(entry) {
     if (key === "name" || key === "summary" || key === "highlights" || key === "start_date" || key === "end_date" || key === "date" || key === "location" || key === "url" || key === "doi") {
       continue;
     }
-    if (value == null || value === "" || Array.isArray(value) && value.length === 0 || isRecord2(value)) {
+    if (value == null || value === "" || Array.isArray(value) && value.length === 0 || isRecord3(value)) {
       continue;
     }
     if (Array.isArray(value)) {
@@ -7223,7 +7405,7 @@ function normalizeUnknownEntry(entry, preferredFlavors, selectedTags, variantAct
   }
   const stripped = stripCompatFields(prepared);
   const knownType = detectKnownEntryType(stripped);
-  if (knownType && isRecord2(stripped)) {
+  if (knownType && isRecord3(stripped)) {
     return foldStrayFieldsIntoKnownEntry(stripped, knownType);
   }
   if (entryMatchesKnownType(stripped)) {
@@ -7235,7 +7417,7 @@ function normalizeUnknownEntry(entry, preferredFlavors, selectedTags, variantAct
   }
   const adjusted = applyFieldSynonyms(stripped);
   if (entryMatchesKnownType(adjusted)) {
-    if (isRecord2(adjusted)) {
+    if (isRecord3(adjusted)) {
       if (adjusted.company != null && adjusted.position != null) {
         return normalizeExperienceEntry(adjusted);
       }
@@ -7249,7 +7431,7 @@ function normalizeUnknownEntry(entry, preferredFlavors, selectedTags, variantAct
 }
 function normalizeEducationEntry(entry) {
   const normalized = stripCompatFields(entry);
-  if (!isRecord2(normalized)) {
+  if (!isRecord3(normalized)) {
     return entry;
   }
   const normalizedRecord = appendSummary(normalized, [
@@ -7260,7 +7442,7 @@ function normalizeEducationEntry(entry) {
 }
 function normalizeAwardEntry(entry) {
   const normalized = stripCompatFields(entry);
-  if (!isRecord2(normalized)) {
+  if (!isRecord3(normalized)) {
     return entry;
   }
   const normalizedRecord = appendSummary(normalized, [
@@ -7269,20 +7451,20 @@ function normalizeAwardEntry(entry) {
   delete normalizedRecord.amount;
   return cleanMapping(normalizedRecord);
 }
-function expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive) {
-  if (!isRecord2(entry)) {
+function expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive, locale) {
+  if (!isRecord3(entry)) {
     return [];
   }
   const preparedEntry = normalizeFlavoredFields(entry, preferredFlavors);
-  if (!isRecord2(preparedEntry) || !matchesEntryVariant(preparedEntry, selectedTags, variantActive)) {
+  if (!isRecord3(preparedEntry) || !matchesEntryVariant(preparedEntry, selectedTags, variantActive)) {
     return [];
   }
-  const normalizedEntry = normalizeExperienceEntry(preparedEntry);
+  const normalizedEntry = foldStrayExperienceFields(normalizeExperienceEntry(preparedEntry));
   const positions = normalizedEntry.positions;
   if (!Array.isArray(positions)) {
     return [normalizedEntry];
   }
-  const visiblePositions = positions.map((position) => normalizeFlavoredFields(position, preferredFlavors)).filter(isRecord2).filter((position) => matchesEntryVariant(position, selectedTags, variantActive)).map((position) => normalizeExperienceEntry(position)).filter((position) => isRecord2(position));
+  const visiblePositions = positions.map((position) => normalizeFlavoredFields(position, preferredFlavors)).filter(isRecord3).filter((position) => matchesEntryVariant(position, selectedTags, variantActive)).map((position) => foldStrayExperienceFields(normalizeExperienceEntry(position))).filter((position) => isRecord3(position));
   if (visiblePositions.length === 0) {
     return [];
   }
@@ -7298,7 +7480,11 @@ function expandNestedPositions(entry, preferredFlavors, selectedTags, variantAct
     const positionTitle = normalizePositionTitle(position) || String(item.position ?? "").trim();
     let positionText = positionTitle;
     if (includePositionDates && positionTitle) {
-      const positionDateRange = formatDateRangeForDisplay(position.start_date, position.end_date);
+      const positionDateRange = formatDateRangeForDisplay(
+        position.start_date,
+        position.end_date,
+        locale
+      );
       if (positionDateRange) {
         positionText = `${positionTitle} | ${positionDateRange}`;
       }
@@ -7341,7 +7527,7 @@ function expandNestedPositions(entry, preferredFlavors, selectedTags, variantAct
 }
 function prepareVariantRecord(entry, preferredFlavors, selectedTags, variantActive) {
   const normalized = normalizeFlavoredFields(entry, preferredFlavors);
-  if (!isRecord2(normalized) || !matchesEntryVariant(normalized, selectedTags, variantActive)) {
+  if (!isRecord3(normalized) || !matchesEntryVariant(normalized, selectedTags, variantActive)) {
     return void 0;
   }
   return normalized;
@@ -7353,11 +7539,11 @@ function normalizePublications(entries, preferredFlavors, selectedTags, variantA
       return [];
     }
     const item = stripCompatFields(prepared);
-    if (!isRecord2(item)) {
+    if (!isRecord3(item)) {
       return [];
     }
     let authors = item.authors;
-    if (isRecord2(authors) && "flavors" in authors) {
+    if (isRecord3(authors) && "flavors" in authors) {
       authors = pickFlavorValue(authors, preferredFlavors);
     }
     if (authors && !Array.isArray(authors)) {
@@ -7401,7 +7587,7 @@ function normalizeTeachingEntries(entries, preferredFlavors, selectedTags, varia
       return [];
     }
     const item = stripCompatFields(prepared);
-    if (!isRecord2(item)) {
+    if (!isRecord3(item)) {
       return [];
     }
     const course = item.course ?? item.name ?? item.title;
@@ -7452,7 +7638,7 @@ function normalizeSocialConnections(cvData) {
   }
   if (Array.isArray(socialEntries)) {
     for (const entry of socialEntries) {
-      if (!isRecord2(entry)) {
+      if (!isRecord3(entry)) {
         continue;
       }
       const network = entry.network;
@@ -7527,6 +7713,86 @@ function normalizeAddressConnection(cvData) {
     cvData.custom_connections = customConnections;
   }
 }
+var ALTERNATE_NAME_FIELDS = [
+  "name_hangul",
+  "name_native",
+  "name_hanja",
+  "name_hanzi",
+  "name_kanji",
+  "name_kana",
+  "name_romanized",
+  "name_english"
+];
+function normalizeAlternateNames(cvData) {
+  const alternates = [];
+  for (const field of ALTERNATE_NAME_FIELDS) {
+    const value = cvData[field];
+    delete cvData[field];
+    if (value == null || Array.isArray(value) || isRecord3(value)) {
+      continue;
+    }
+    const text = String(value).trim();
+    if (text && text !== String(cvData.name ?? "").trim()) {
+      alternates.push(text);
+    }
+  }
+  if (alternates.length === 0) {
+    return;
+  }
+  const headline = typeof cvData.headline === "string" ? cvData.headline.trim() : "";
+  cvData.headline = joinParts([headline || void 0, ...alternates]);
+}
+function normalizeDateOfBirthConnection(cvData) {
+  const rawDateOfBirth = cvData.date_of_birth;
+  delete cvData.date_of_birth;
+  if (rawDateOfBirth == null || Array.isArray(rawDateOfBirth) || isRecord3(rawDateOfBirth)) {
+    return;
+  }
+  const dateOfBirth = String(rawDateOfBirth).trim();
+  if (!dateOfBirth) {
+    return;
+  }
+  const customConnections = asCustomConnections(cvData);
+  const alreadyPresent = customConnections.some(
+    (entry) => String(entry.placeholder ?? "") === dateOfBirth
+  );
+  if (!alreadyPresent) {
+    customConnections.push({ fontawesome_icon: "cake-candles", placeholder: dateOfBirth });
+  }
+  cvData.custom_connections = customConnections;
+}
+function humanizeKey(key) {
+  const spaced = key.replaceAll("_", " ").trim();
+  if (!spaced) {
+    return key;
+  }
+  return spaced.replace(/\b[a-z]/g, (character) => character.toUpperCase());
+}
+function normalizeMappingSection(section) {
+  const entries = [];
+  for (const [key, value] of Object.entries(section)) {
+    const label = humanizeKey(key);
+    if (Array.isArray(value)) {
+      const details = value.filter((item) => item != null && !Array.isArray(item) && !isRecord3(item)).map((item) => String(item).trim()).filter(Boolean);
+      if (details.length > 0) {
+        entries.push({ label, details: details.join(", ") });
+      }
+      continue;
+    }
+    if (isRecord3(value)) {
+      entries.push(...normalizeMappingSection(value));
+      continue;
+    }
+    if (value == null) {
+      continue;
+    }
+    const text = String(value).trim();
+    if (text) {
+      entries.push({ name: label, summary: text });
+    }
+  }
+  return entries;
+}
 function normalizeMediaEntries(entries, preferredFlavors, selectedTags, variantActive) {
   return entries.flatMap((entry) => {
     const prepared = prepareVariantRecord(entry, preferredFlavors, selectedTags, variantActive);
@@ -7534,7 +7800,7 @@ function normalizeMediaEntries(entries, preferredFlavors, selectedTags, variantA
       return [];
     }
     const normalized = stripCompatFields(prepared);
-    if (!isRecord2(normalized)) {
+    if (!isRecord3(normalized)) {
       return [];
     }
     return [
@@ -7562,7 +7828,7 @@ function normalizeMembershipEntries(entries, preferredFlavors, selectedTags, var
       return [];
     }
     const normalized = stripCompatFields(prepared);
-    if (!isRecord2(normalized)) {
+    if (!isRecord3(normalized)) {
       return [];
     }
     return [
@@ -7581,7 +7847,7 @@ function normalizeEventAdministrationEntries(entries, preferredFlavors, selected
       return [];
     }
     const normalized = stripCompatFields(prepared);
-    if (!isRecord2(normalized)) {
+    if (!isRecord3(normalized)) {
       return [];
     }
     return [
@@ -7612,12 +7878,12 @@ function normalizeResearchKeywords(entries) {
     ];
   });
 }
-function normalizeSectionEntries(sectionName, entries, preferredFlavors, selectedTags, variantActive) {
+function normalizeSectionEntries(sectionName, entries, preferredFlavors, selectedTags, variantActive, locale) {
   switch (sectionName) {
     case "experience":
     case "volunteer":
       return entries.flatMap(
-        (entry) => expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive)
+        (entry) => expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive, locale)
       );
     case "education":
       return entries.flatMap((entry) => {
@@ -7674,29 +7940,29 @@ function stripPositionMarker(position) {
   }
   return position;
 }
-function parseDisplayDate(dateText) {
+function parseDisplayDate(dateText, locale) {
   const normalized = dateText.trim();
   if (!normalized) {
     return void 0;
   }
-  if (normalized.toLowerCase() === "present") {
+  if (normalized.toLowerCase() === "present" || normalized === locale.present || normalized === ENGLISH_DATE_LOCALE.present) {
     return "present";
   }
   if (/^\d{4}$/.test(normalized)) {
     return normalized;
   }
-  const monthMatch = normalized.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  const monthMatch = normalized.match(/^(\S+)\s+(\d{4})$/);
   if (!monthMatch) {
     return void 0;
   }
   const [, monthName, year] = monthMatch;
-  const month = MONTH_NUMBERS_BY_NAME[monthName];
+  const month = monthNumbersByName(locale)[monthName];
   if (!month) {
     return void 0;
   }
   return `${year}-${month}`;
 }
-function splitPositionDateSuffix(position) {
+function splitPositionDateSuffix(position, locale) {
   const separatorIndex = position.lastIndexOf(" | ");
   if (separatorIndex < 0) {
     return void 0;
@@ -7707,8 +7973,8 @@ function splitPositionDateSuffix(position) {
     return void 0;
   }
   const [rawStart, rawEnd] = rawRange.split(/\s+[–-]\s+/, 2);
-  const startDate = rawStart ? parseDisplayDate(rawStart) : void 0;
-  const endDate = rawEnd ? parseDisplayDate(rawEnd) : void 0;
+  const startDate = rawStart ? parseDisplayDate(rawStart, locale) : void 0;
+  const endDate = rawEnd ? parseDisplayDate(rawEnd, locale) : void 0;
   if (!startDate && !endDate) {
     return void 0;
   }
@@ -7719,7 +7985,7 @@ function splitPositionDateSuffix(position) {
   };
 }
 function isContinuationEntry(entry) {
-  return isRecord2(entry) && typeof entry.position === "string" && String(entry.company ?? "").trim().length === 0;
+  return isRecord3(entry) && typeof entry.position === "string" && String(entry.company ?? "").trim().length === 0;
 }
 function stripPositionMarkersFromCvYaml(yamlText) {
   let parsed;
@@ -7728,15 +7994,15 @@ function stripPositionMarkersFromCvYaml(yamlText) {
   } catch {
     return yamlText;
   }
-  if (!isRecord2(parsed)) {
+  if (!isRecord3(parsed)) {
     return yamlText;
   }
   const cvData = parsed.cv;
-  if (!isRecord2(cvData)) {
+  if (!isRecord3(cvData)) {
     return yamlText;
   }
   const sections = cvData.sections;
-  if (!isRecord2(sections)) {
+  if (!isRecord3(sections)) {
     return yamlText;
   }
   for (const entries of Object.values(sections)) {
@@ -7744,7 +8010,7 @@ function stripPositionMarkersFromCvYaml(yamlText) {
       continue;
     }
     for (const entry of entries) {
-      if (!isRecord2(entry) || typeof entry.position !== "string") {
+      if (!isRecord3(entry) || typeof entry.position !== "string") {
         continue;
       }
       entry.position = stripPositionMarker(entry.position);
@@ -7752,22 +8018,23 @@ function stripPositionMarkersFromCvYaml(yamlText) {
   }
   return browser_default.stringify(parsed);
 }
-function repairFlattenedPositionDatesInCvYaml(yamlText) {
+function repairFlattenedPositionDatesInCvYaml(yamlText, localeYaml) {
+  const locale = resolveDateLocale(localeYaml);
   let parsed;
   try {
     parsed = browser_default.parse(yamlText);
   } catch {
     return yamlText;
   }
-  if (!isRecord2(parsed)) {
+  if (!isRecord3(parsed)) {
     return yamlText;
   }
   const cvData = parsed.cv;
-  if (!isRecord2(cvData)) {
+  if (!isRecord3(cvData)) {
     return yamlText;
   }
   const sections = cvData.sections;
-  if (!isRecord2(sections)) {
+  if (!isRecord3(sections)) {
     return yamlText;
   }
   for (const entries of Object.values(sections)) {
@@ -7775,11 +8042,11 @@ function repairFlattenedPositionDatesInCvYaml(yamlText) {
       continue;
     }
     for (const entry of entries) {
-      if (!isRecord2(entry) || typeof entry.position !== "string") {
+      if (!isRecord3(entry) || typeof entry.position !== "string") {
         continue;
       }
       const cleanedPosition = stripPositionMarker(entry.position);
-      const parsedPosition = splitPositionDateSuffix(cleanedPosition);
+      const parsedPosition = splitPositionDateSuffix(cleanedPosition, locale);
       if (!parsedPosition) {
         entry.position = cleanedPosition;
         continue;
@@ -7806,15 +8073,15 @@ function restoreAhmadStylePositionMarkersInCvYaml(yamlText) {
   } catch {
     return yamlText;
   }
-  if (!isRecord2(parsed)) {
+  if (!isRecord3(parsed)) {
     return yamlText;
   }
   const cvData = parsed.cv;
-  if (!isRecord2(cvData)) {
+  if (!isRecord3(cvData)) {
     return yamlText;
   }
   const sections = cvData.sections;
-  if (!isRecord2(sections)) {
+  if (!isRecord3(sections)) {
     return yamlText;
   }
   for (const entries of Object.values(sections)) {
@@ -7823,7 +8090,7 @@ function restoreAhmadStylePositionMarkersInCvYaml(yamlText) {
     }
     for (let index = 0; index < entries.length; index += 1) {
       const entry = entries[index];
-      if (!isRecord2(entry) || typeof entry.position !== "string") {
+      if (!isRecord3(entry) || typeof entry.position !== "string") {
         continue;
       }
       const nextEntry = entries[index + 1];
@@ -7840,15 +8107,18 @@ function normalizeCompatibilityCvYaml(yamlText, options) {
   } catch {
     return yamlText;
   }
-  if (!isRecord2(parsed)) {
+  if (!isRecord3(parsed)) {
     return yamlText;
   }
   const cvData = parsed.cv;
-  if (!isRecord2(cvData)) {
+  if (!isRecord3(cvData)) {
     return yamlText;
   }
   normalizeSocialConnections(cvData);
   normalizeAddressConnection(cvData);
+  normalizeAlternateNames(cvData);
+  normalizeDateOfBirthConnection(cvData);
+  const locale = resolveDateLocale(options?.locale);
   const variantActive = Boolean(options?.variant);
   const selectedTags = normalizeStringList(options?.variant?.tags);
   const preferredFlavors = normalizeStringList(options?.variant?.flavors);
@@ -7856,10 +8126,14 @@ function normalizeCompatibilityCvYaml(yamlText, options) {
     variantActive ? normalizeStringList(options?.variant?.exclude_sections) : []
   );
   const sections = cvData.sections;
-  if (isRecord2(sections)) {
+  if (isRecord3(sections)) {
     for (const [sectionName, entries] of Object.entries(sections)) {
       if (excludedSections.has(sectionName)) {
         delete sections[sectionName];
+        continue;
+      }
+      if (isRecord3(entries)) {
+        sections[sectionName] = normalizeMappingSection(entries);
         continue;
       }
       if (!Array.isArray(entries)) {
@@ -7870,7 +8144,8 @@ function normalizeCompatibilityCvYaml(yamlText, options) {
         entries,
         preferredFlavors,
         selectedTags,
-        variantActive
+        variantActive,
+        locale
       );
       if (sectionName === "publications") {
         const existingResearchPublications = Array.isArray(sections.research_publications) ? sections.research_publications : [];
@@ -7888,7 +8163,7 @@ function normalizeCompatibilityCvYaml(yamlText, options) {
 // src/compiler.ts
 var RENDERCV_COMPILER_VERSION = "1.0.0";
 var DEFAULT_MAX_YAML_BYTES = 1024 * 1024;
-function isRecord3(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function parseDocument2(yaml, maxBytes = DEFAULT_MAX_YAML_BYTES) {
@@ -7896,15 +8171,15 @@ function parseDocument2(yaml, maxBytes = DEFAULT_MAX_YAML_BYTES) {
     throw new Error(`RenderCV YAML exceeds the ${maxBytes}-byte compiler limit.`);
   }
   const parsed = browser_default.parse(yaml, { maxAliasCount: 50 });
-  if (!isRecord3(parsed) || !isRecord3(parsed.cv)) {
+  if (!isRecord4(parsed) || !isRecord4(parsed.cv)) {
     throw new Error("RenderCV document must contain a top-level cv mapping.");
   }
   return parsed;
 }
 function removeEntries(document, hidden) {
-  if (!hidden || !isRecord3(document.cv)) return;
+  if (!hidden || !isRecord4(document.cv)) return;
   const cv = document.cv;
-  const sections = isRecord3(cv.sections) ? cv.sections : null;
+  const sections = isRecord4(cv.sections) ? cv.sections : null;
   for (const [key, fingerprints] of Object.entries(hidden)) {
     const topLevel = topLevelEntryListFromKey(key);
     const container = topLevel ? cv : sections;
@@ -7917,30 +8192,34 @@ function removeEntries(document, hidden) {
   }
 }
 function removeSections(document, disabledSections) {
-  if (!disabledSections?.length || !isRecord3(document.cv) || !isRecord3(document.cv.sections)) return;
+  if (!disabledSections?.length || !isRecord4(document.cv) || !isRecord4(document.cv.sections)) return;
   for (const section of disabledSections) delete document.cv.sections[section];
 }
 function stripEmptySections(yaml) {
   const document = parseDocument2(yaml);
-  if (!isRecord3(document.cv) || !isRecord3(document.cv.sections)) return yaml;
+  if (!isRecord4(document.cv) || !isRecord4(document.cv.sections)) return yaml;
   for (const [key, entries] of Object.entries(document.cv.sections)) {
     if (Array.isArray(entries) && entries.length === 0) delete document.cv.sections[key];
   }
   return browser_default.stringify(document);
 }
 function readTheme(document) {
-  return isRecord3(document.design) && typeof document.design.theme === "string" ? document.design.theme.trim() || null : null;
+  return isRecord4(document.design) && typeof document.design.theme === "string" ? document.design.theme.trim() || null : null;
 }
 function compileRenderCvDocument(input) {
   const source = parseDocument2(input.yaml, input.maxBytes);
   removeEntries(source, input.hiddenEntries);
   removeEntries(source, input.variant?.exclude_entries);
   removeSections(source, input.disabledSections);
-  const normalized = normalizeCompatibilityCvYaml(browser_default.stringify(source), { variant: input.variant });
+  const localeYaml = source.locale === void 0 ? void 0 : browser_default.stringify({ locale: source.locale });
+  const normalized = normalizeCompatibilityCvYaml(browser_default.stringify(source), {
+    variant: input.variant,
+    locale: localeYaml
+  });
   const normalizedDocument = parseDocument2(normalized, input.maxBytes);
   const theme = readTheme(normalizedDocument);
   const withoutMarkers = stripPositionMarkersFromCvYaml(normalized);
-  const positioned = themeUsesPositionSpacingMarkers(theme ?? void 0) ? restoreAhmadStylePositionMarkersInCvYaml(withoutMarkers) : repairFlattenedPositionDatesInCvYaml(withoutMarkers);
+  const positioned = themeUsesPositionSpacingMarkers(theme ?? void 0) ? restoreAhmadStylePositionMarkersInCvYaml(withoutMarkers) : repairFlattenedPositionDatesInCvYaml(withoutMarkers, localeYaml);
   const yaml = stripEmptySections(positioned);
   parseDocument2(yaml, input.maxBytes);
   return {
@@ -7956,7 +8235,7 @@ function validateRenderCvDocument(yaml, maxBytes) {
 function parseOptionalSection(yaml, key) {
   if (!yaml?.trim()) return {};
   const parsed = browser_default.parse(yaml, { maxAliasCount: 50 });
-  if (!isRecord3(parsed)) throw new Error(`RenderCV ${key} section must be a YAML mapping.`);
+  if (!isRecord4(parsed)) throw new Error(`RenderCV ${key} section must be a YAML mapping.`);
   return parsed;
 }
 function compileRenderCvSections(input) {
@@ -7987,10 +8266,10 @@ function compileRenderCvSections(input) {
 }
 
 // src/cv-variants.ts
-function isRecord4(value) {
+function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function readStringList(value, field = "list") {
+function readStringList2(value, field = "list") {
   if (!Array.isArray(value)) {
     return void 0;
   }
@@ -8002,10 +8281,10 @@ function readStringList(value, field = "list") {
   return items.length > 0 ? items : void 0;
 }
 function readExcludeEntries(value) {
-  if (!isRecord4(value)) return void 0;
+  if (!isRecord5(value)) return void 0;
   if (Object.keys(value).length > 50) throw new Error("exclude_entries may contain at most 50 sections.");
   const entries = Object.fromEntries(Object.entries(value).flatMap(([key, fingerprints]) => {
-    const values = readStringList(fingerprints, `exclude_entries.${key}`);
+    const values = readStringList2(fingerprints, `exclude_entries.${key}`);
     return values ? [[key, values]] : [];
   }));
   return Object.keys(entries).length ? entries : void 0;
@@ -8016,7 +8295,7 @@ function parseCvVariantsYaml(content, options = {}) {
     throw new Error(`Variants YAML exceeds the ${maxBytes}-byte parser limit.`);
   }
   const parsed = browser_default.parse(content, { maxAliasCount: 50 });
-  const variantsRoot = isRecord4(parsed) && isRecord4(parsed.variants) ? parsed.variants : isRecord4(parsed) ? parsed : void 0;
+  const variantsRoot = isRecord5(parsed) && isRecord5(parsed.variants) ? parsed.variants : isRecord5(parsed) ? parsed : void 0;
   if (!variantsRoot) {
     throw new Error("Expected a variants file with a top-level variants: mapping.");
   }
@@ -8029,7 +8308,7 @@ function parseCvVariantsYaml(content, options = {}) {
       if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(key)) {
         throw new Error(`Invalid variant key: ${key}`);
       }
-      if (!isRecord4(value)) {
+      if (!isRecord5(value)) {
         return [];
       }
       return [
@@ -8037,10 +8316,10 @@ function parseCvVariantsYaml(content, options = {}) {
           key,
           {
             description: typeof value.description === "string" ? value.description.slice(0, 500) : void 0,
-            exclude_sections: readStringList(value.exclude_sections, `${key}.exclude_sections`),
+            exclude_sections: readStringList2(value.exclude_sections, `${key}.exclude_sections`),
             exclude_entries: readExcludeEntries(value.exclude_entries),
-            tags: readStringList(value.tags, `${key}.tags`),
-            flavors: readStringList(value.flavors, `${key}.flavors`)
+            tags: readStringList2(value.tags, `${key}.tags`),
+            flavors: readStringList2(value.flavors, `${key}.flavors`)
           }
         ]
       ];
@@ -8053,17 +8332,21 @@ function parseCvVariantsYaml(content, options = {}) {
 }
 export {
   ARCHIVED_TAG,
+  ENGLISH_DATE_LOCALE,
   RENDERCV_COMPILER_VERSION,
   TOP_LEVEL_ENTRY_LISTS,
+  availableDateLocales,
   compileRenderCvDocument,
   compileRenderCvSections,
   computeVariantVisibility,
   entryFingerprint,
   matchesEntryVariant,
+  monthNumbersByName,
   normalizeCompatibilityCvYaml,
   normalizeStringList,
   parseCvVariantsYaml,
   repairFlattenedPositionDatesInCvYaml,
+  resolveDateLocale,
   restoreAhmadStylePositionMarkersInCvYaml,
   stripPositionMarkersFromCvYaml,
   themeUsesPositionSpacingMarkers,

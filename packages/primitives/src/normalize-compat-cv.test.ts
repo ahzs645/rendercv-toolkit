@@ -89,3 +89,122 @@ describe('normalizeCompatibilityCvYaml entry shapes', () => {
     ]);
   });
 });
+
+describe('normalizeCompatibilityCvYaml localization', () => {
+  function normalizeWithLocale(cv: Record<string, unknown>, locale?: string) {
+    const yamlText = YAML.stringify({ cv });
+    return YAML.parse(normalizeCompatibilityCvYaml(yamlText, { locale })) as {
+      cv: Record<string, unknown> & { sections: Record<string, unknown[]> };
+    };
+  }
+
+  const twoPositions = {
+    name: '김윤서',
+    sections: {
+      experience: [
+        {
+          company: 'FR 미디어',
+          positions: [
+            { title: '선임 영상편집자', start_date: '2023-11', end_date: 'present' },
+            { title: '영상편집자', start_date: '2023-03', end_date: '2023-10' }
+          ]
+        }
+      ]
+    }
+  };
+
+  it('renders flattened position dates with the document locale', () => {
+    const { cv } = normalizeWithLocale(twoPositions, 'locale:\n  language: korean\n');
+    const positions = cv.sections.experience.map((entry) => (entry as { position: string }).position);
+
+    expect(positions[0]).toContain('11월 2023 – 현재');
+    expect(positions[1]).toContain('3월 2023 – 10월 2023');
+  });
+
+  it('keeps English dates when no locale is supplied', () => {
+    const { cv } = normalizeWithLocale(twoPositions);
+    const positions = cv.sections.experience.map((entry) => (entry as { position: string }).position);
+
+    expect(positions[0]).toContain('November 2023 – Present');
+    expect(positions[1]).toContain('March 2023 – October 2023');
+  });
+
+  it('honours a hand-edited present translation', () => {
+    const { cv } = normalizeWithLocale(
+      twoPositions,
+      'locale:\n  language: korean\n  present: 재직중\n'
+    );
+    const position = (cv.sections.experience[0] as { position: string }).position;
+
+    expect(position).toContain('11월 2023 – 재직중');
+  });
+});
+
+describe('normalizeCompatibilityCvYaml CJK résumé shapes', () => {
+  function normalizeCv(cv: Record<string, unknown>) {
+    return (
+      YAML.parse(normalizeCompatibilityCvYaml(YAML.stringify({ cv }))) as {
+        cv: Record<string, unknown> & { sections: Record<string, unknown[]> };
+      }
+    ).cv;
+  }
+
+  it('folds alternate name renderings into the headline', () => {
+    const cv = normalizeCv({
+      name: '김윤서',
+      name_hanja: '金允誓',
+      name_english: 'Yunseo Kim'
+    });
+
+    expect(cv.headline).toBe('金允誓 · Yunseo Kim');
+    expect(cv.name_hanja).toBeUndefined();
+    expect(cv.name_english).toBeUndefined();
+  });
+
+  it('keeps an authored headline ahead of the alternate names', () => {
+    const cv = normalizeCv({ name: '김윤서', headline: '영상편집자', name_english: 'Yunseo Kim' });
+
+    expect(cv.headline).toBe('영상편집자 · Yunseo Kim');
+  });
+
+  it('turns a date of birth into a header connection', () => {
+    const cv = normalizeCv({ name: '김윤서', date_of_birth: '2003-04-24' });
+
+    expect(cv.date_of_birth).toBeUndefined();
+    expect(cv.custom_connections).toEqual([
+      { fontawesome_icon: 'cake-candles', placeholder: '2003-04-24' }
+    ]);
+  });
+
+  it('turns a section written as a mapping into entries', () => {
+    const cv = normalizeCv({
+      name: '김윤서',
+      sections: {
+        자기소개서: {
+          keywords: ['성실함', '열정'],
+          지원동기: '선한 영향력을 끼치고 싶습니다.'
+        }
+      }
+    });
+
+    expect(cv.sections.자기소개서).toEqual([
+      { label: 'Keywords', details: '성실함, 열정' },
+      { name: '지원동기', summary: '선한 영향력을 끼치고 싶습니다.' }
+    ]);
+  });
+
+  it('folds fields RenderCV forbids on an experience entry into its summary', () => {
+    const cv = normalizeCv({
+      name: '김윤서',
+      sections: {
+        experience: [
+          { company: 'FR 미디어', position: '영상편집자', employment_type: '단기계약' }
+        ]
+      }
+    });
+
+    expect(cv.sections.experience).toEqual([
+      { company: 'FR 미디어', position: '영상편집자', summary: 'employment type: 단기계약' }
+    ]);
+  });
+});

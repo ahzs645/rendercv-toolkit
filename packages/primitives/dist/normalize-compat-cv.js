@@ -1,4 +1,5 @@
 import YAML from 'yaml';
+import { ENGLISH_DATE_LOCALE, monthNumbersByName, resolveDateLocale } from './locales';
 import { matchesEntryVariant, normalizeStringList } from './variant-visibility';
 const SUPPORTED_SOCIAL_NETWORKS = new Set([
     'LinkedIn',
@@ -41,21 +42,6 @@ const TOP_LEVEL_SOCIAL_FIELD_MAP = {
 };
 const POSITION_SPACING_SAME_MARKER = 'RCVSPACINGSAME:';
 const POSITION_SPACING_DIFF_MARKER = 'RCVSPACINGDIFF:';
-const MONTH_NAMES = {
-    '01': 'January',
-    '02': 'February',
-    '03': 'March',
-    '04': 'April',
-    '05': 'May',
-    '06': 'June',
-    '07': 'July',
-    '08': 'August',
-    '09': 'September',
-    '10': 'October',
-    '11': 'November',
-    '12': 'December'
-};
-const MONTH_NUMBERS_BY_NAME = Object.fromEntries(Object.entries(MONTH_NAMES).map(([month, name]) => [name, month]));
 const ENTRY_META_FIELDS = new Set([
     'start_date',
     'end_date',
@@ -314,7 +300,7 @@ function stripCompatFields(entry) {
     delete normalized.show_date_in_position;
     return normalized;
 }
-function formatDateForDisplay(dateString) {
+function formatDateForDisplay(dateString, locale) {
     if (dateString == null) {
         return '';
     }
@@ -323,23 +309,24 @@ function formatDateForDisplay(dateString) {
         return '';
     }
     if (normalized.toLowerCase() === 'present') {
-        return 'Present';
+        return locale.present;
     }
     const parts = normalized.split('-');
     if (parts.length === 1) {
         return parts[0];
     }
     if (parts.length >= 2) {
-        const monthName = MONTH_NAMES[parts[1].padStart(2, '0')];
+        const monthIndex = Number.parseInt(parts[1], 10) - 1;
+        const monthName = locale.monthNames[monthIndex];
         if (monthName) {
             return `${monthName} ${parts[0]}`;
         }
     }
     return normalized;
 }
-function formatDateRangeForDisplay(startDate, endDate) {
-    const start = formatDateForDisplay(startDate);
-    const end = formatDateForDisplay(endDate);
+function formatDateRangeForDisplay(startDate, endDate, locale) {
+    const start = formatDateForDisplay(startDate, locale);
+    const end = formatDateForDisplay(endDate, locale);
     if (start && end) {
         return `${start} – ${end}`;
     }
@@ -395,6 +382,44 @@ function normalizeExperienceEntry(entry) {
     delete normalizedRecord.course_level;
     delete normalizedRecord.number_of_students;
     return cleanMapping(normalizedRecord);
+}
+/**
+ * Fields an experience entry (or one of its nested `positions`) may carry.
+ * RenderCV's entry models set `extra="forbid"`, so anything else has to be
+ * folded into the summary rather than passed through — Korean résumés commonly
+ * add fields like `employment_type` (고용형태) alongside the standard ones.
+ */
+const EXPERIENCE_SHAPE_FIELDS = new Set([
+    'company',
+    'position',
+    'title',
+    'date',
+    'start_date',
+    'end_date',
+    'location',
+    'summary',
+    'highlights',
+    'url',
+    'doi',
+    'positions'
+]);
+function foldStrayExperienceFields(entry) {
+    const kept = { ...entry };
+    const strayParts = [];
+    for (const [key, value] of Object.entries({ ...kept })) {
+        if (EXPERIENCE_SHAPE_FIELDS.has(key)) {
+            continue;
+        }
+        if (value == null || value === '' || Array.isArray(value) || isRecord(value)) {
+            continue;
+        }
+        strayParts.push(`${key.replaceAll('_', ' ')}: ${String(value)}`);
+        delete kept[key];
+    }
+    if (strayParts.length > 0) {
+        kept.summary = joinParts([kept.summary, ...strayParts]);
+    }
+    return cleanMapping(kept);
 }
 function applyFieldSynonyms(entry) {
     if (!isRecord(entry)) {
@@ -591,7 +616,7 @@ function normalizeAwardEntry(entry) {
     delete normalizedRecord.amount;
     return cleanMapping(normalizedRecord);
 }
-function expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive) {
+function expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive, locale) {
     if (!isRecord(entry)) {
         return [];
     }
@@ -599,7 +624,7 @@ function expandNestedPositions(entry, preferredFlavors, selectedTags, variantAct
     if (!isRecord(preparedEntry) || !matchesEntryVariant(preparedEntry, selectedTags, variantActive)) {
         return [];
     }
-    const normalizedEntry = normalizeExperienceEntry(preparedEntry);
+    const normalizedEntry = foldStrayExperienceFields(normalizeExperienceEntry(preparedEntry));
     const positions = normalizedEntry.positions;
     if (!Array.isArray(positions)) {
         return [normalizedEntry];
@@ -608,7 +633,7 @@ function expandNestedPositions(entry, preferredFlavors, selectedTags, variantAct
         .map((position) => normalizeFlavoredFields(position, preferredFlavors))
         .filter(isRecord)
         .filter((position) => matchesEntryVariant(position, selectedTags, variantActive))
-        .map((position) => normalizeExperienceEntry(position))
+        .map((position) => foldStrayExperienceFields(normalizeExperienceEntry(position)))
         .filter((position) => isRecord(position));
     if (visiblePositions.length === 0) {
         return [];
@@ -625,7 +650,7 @@ function expandNestedPositions(entry, preferredFlavors, selectedTags, variantAct
         const positionTitle = normalizePositionTitle(position) || String(item.position ?? '').trim();
         let positionText = positionTitle;
         if (includePositionDates && positionTitle) {
-            const positionDateRange = formatDateRangeForDisplay(position.start_date, position.end_date);
+            const positionDateRange = formatDateRangeForDisplay(position.start_date, position.end_date, locale);
             if (positionDateRange) {
                 positionText = `${positionTitle} | ${positionDateRange}`;
             }
@@ -856,6 +881,105 @@ function normalizeAddressConnection(cvData) {
         cvData.custom_connections = customConnections;
     }
 }
+/**
+ * Additional renderings of the author's name, in the order a CJK résumé prints
+ * them. Korean and Japanese application forms routinely carry the name three
+ * times (한글 / 漢字 / Latin), and RenderCV's `cv` mapping only has one `name`,
+ * so the extra renderings would otherwise be dropped.
+ */
+const ALTERNATE_NAME_FIELDS = [
+    'name_hangul',
+    'name_native',
+    'name_hanja',
+    'name_hanzi',
+    'name_kanji',
+    'name_kana',
+    'name_romanized',
+    'name_english'
+];
+function normalizeAlternateNames(cvData) {
+    const alternates = [];
+    for (const field of ALTERNATE_NAME_FIELDS) {
+        const value = cvData[field];
+        delete cvData[field];
+        if (value == null || Array.isArray(value) || isRecord(value)) {
+            continue;
+        }
+        const text = String(value).trim();
+        if (text && text !== String(cvData.name ?? '').trim()) {
+            alternates.push(text);
+        }
+    }
+    if (alternates.length === 0) {
+        return;
+    }
+    const headline = typeof cvData.headline === 'string' ? cvData.headline.trim() : '';
+    cvData.headline = joinParts([headline || undefined, ...alternates]);
+}
+function normalizeDateOfBirthConnection(cvData) {
+    const rawDateOfBirth = cvData.date_of_birth;
+    delete cvData.date_of_birth;
+    if (rawDateOfBirth == null || Array.isArray(rawDateOfBirth) || isRecord(rawDateOfBirth)) {
+        return;
+    }
+    const dateOfBirth = String(rawDateOfBirth).trim();
+    if (!dateOfBirth) {
+        return;
+    }
+    const customConnections = asCustomConnections(cvData);
+    const alreadyPresent = customConnections.some((entry) => String(entry.placeholder ?? '') === dateOfBirth);
+    if (!alreadyPresent) {
+        // `url` is optional on RenderCV's CustomConnection, and a birth date has
+        // nothing sensible to link to.
+        customConnections.push({ fontawesome_icon: 'cake-candles', placeholder: dateOfBirth });
+    }
+    cvData.custom_connections = customConnections;
+}
+function humanizeKey(key) {
+    const spaced = key.replaceAll('_', ' ').trim();
+    if (!spaced) {
+        return key;
+    }
+    // Only Latin text gets title-cased; Hangul, Kana and Han have no case, and
+    // uppercasing their code points would be a no-op at best.
+    return spaced.replace(/\b[a-z]/g, (character) => character.toUpperCase());
+}
+/**
+ * Turn a section written as a mapping into RenderCV entries.
+ *
+ * Korean 자기소개서 sections are naturally authored as `prompt: answer` pairs
+ * rather than a list, and RenderCV only accepts a list of entries. Scalars
+ * become normal entries (heading + prose) and lists of scalars become a
+ * one-line `label`/`details` row, which is how a keyword list reads best.
+ */
+function normalizeMappingSection(section) {
+    const entries = [];
+    for (const [key, value] of Object.entries(section)) {
+        const label = humanizeKey(key);
+        if (Array.isArray(value)) {
+            const details = value
+                .filter((item) => item != null && !Array.isArray(item) && !isRecord(item))
+                .map((item) => String(item).trim())
+                .filter(Boolean);
+            if (details.length > 0) {
+                entries.push({ label, details: details.join(', ') });
+            }
+            continue;
+        }
+        if (isRecord(value)) {
+            entries.push(...normalizeMappingSection(value));
+            continue;
+        }
+        if (value == null) {
+            continue;
+        }
+        const text = String(value).trim();
+        if (text) {
+            entries.push({ name: label, summary: text });
+        }
+    }
+    return entries;
+}
 function normalizeMediaEntries(entries, preferredFlavors, selectedTags, variantActive) {
     return entries.flatMap((entry) => {
         const prepared = prepareVariantRecord(entry, preferredFlavors, selectedTags, variantActive);
@@ -941,11 +1065,11 @@ function normalizeResearchKeywords(entries) {
         ];
     });
 }
-function normalizeSectionEntries(sectionName, entries, preferredFlavors, selectedTags, variantActive) {
+function normalizeSectionEntries(sectionName, entries, preferredFlavors, selectedTags, variantActive, locale) {
     switch (sectionName) {
         case 'experience':
         case 'volunteer':
-            return entries.flatMap((entry) => expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive));
+            return entries.flatMap((entry) => expandNestedPositions(entry, preferredFlavors, selectedTags, variantActive, locale));
         case 'education':
             return entries.flatMap((entry) => {
                 const prepared = prepareVariantRecord(entry, preferredFlavors, selectedTags, variantActive);
@@ -996,29 +1120,32 @@ function stripPositionMarker(position) {
     }
     return position;
 }
-function parseDisplayDate(dateText) {
+function parseDisplayDate(dateText, locale) {
     const normalized = dateText.trim();
     if (!normalized) {
         return undefined;
     }
-    if (normalized.toLowerCase() === 'present') {
+    if (normalized.toLowerCase() === 'present' ||
+        normalized === locale.present ||
+        normalized === ENGLISH_DATE_LOCALE.present) {
         return 'present';
     }
     if (/^\d{4}$/.test(normalized)) {
         return normalized;
     }
-    const monthMatch = normalized.match(/^([A-Za-z]+)\s+(\d{4})$/);
+    // The month name is not necessarily alphabetic: Korean renders "3월 2025".
+    const monthMatch = normalized.match(/^(\S+)\s+(\d{4})$/);
     if (!monthMatch) {
         return undefined;
     }
     const [, monthName, year] = monthMatch;
-    const month = MONTH_NUMBERS_BY_NAME[monthName];
+    const month = monthNumbersByName(locale)[monthName];
     if (!month) {
         return undefined;
     }
     return `${year}-${month}`;
 }
-function splitPositionDateSuffix(position) {
+function splitPositionDateSuffix(position, locale) {
     const separatorIndex = position.lastIndexOf(' | ');
     if (separatorIndex < 0) {
         return undefined;
@@ -1029,8 +1156,8 @@ function splitPositionDateSuffix(position) {
         return undefined;
     }
     const [rawStart, rawEnd] = rawRange.split(/\s+[–-]\s+/, 2);
-    const startDate = rawStart ? parseDisplayDate(rawStart) : undefined;
-    const endDate = rawEnd ? parseDisplayDate(rawEnd) : undefined;
+    const startDate = rawStart ? parseDisplayDate(rawStart, locale) : undefined;
+    const endDate = rawEnd ? parseDisplayDate(rawEnd, locale) : undefined;
     if (!startDate && !endDate) {
         return undefined;
     }
@@ -1077,7 +1204,8 @@ export function stripPositionMarkersFromCvYaml(yamlText) {
     }
     return YAML.stringify(parsed);
 }
-export function repairFlattenedPositionDatesInCvYaml(yamlText) {
+export function repairFlattenedPositionDatesInCvYaml(yamlText, localeYaml) {
+    const locale = resolveDateLocale(localeYaml);
     let parsed;
     try {
         parsed = YAML.parse(yamlText);
@@ -1105,7 +1233,7 @@ export function repairFlattenedPositionDatesInCvYaml(yamlText) {
                 continue;
             }
             const cleanedPosition = stripPositionMarker(entry.position);
-            const parsedPosition = splitPositionDateSuffix(cleanedPosition);
+            const parsedPosition = splitPositionDateSuffix(cleanedPosition, locale);
             if (!parsedPosition) {
                 entry.position = cleanedPosition;
                 continue;
@@ -1183,6 +1311,9 @@ export function normalizeCompatibilityCvYaml(yamlText, options) {
     }
     normalizeSocialConnections(cvData);
     normalizeAddressConnection(cvData);
+    normalizeAlternateNames(cvData);
+    normalizeDateOfBirthConnection(cvData);
+    const locale = resolveDateLocale(options?.locale);
     const variantActive = Boolean(options?.variant);
     const selectedTags = normalizeStringList(options?.variant?.tags);
     const preferredFlavors = normalizeStringList(options?.variant?.flavors);
@@ -1194,10 +1325,15 @@ export function normalizeCompatibilityCvYaml(yamlText, options) {
                 delete sections[sectionName];
                 continue;
             }
+            if (isRecord(entries)) {
+                // A section authored as `prompt: answer` pairs instead of a list.
+                sections[sectionName] = normalizeMappingSection(entries);
+                continue;
+            }
             if (!Array.isArray(entries)) {
                 continue;
             }
-            sections[sectionName] = normalizeSectionEntries(sectionName, entries, preferredFlavors, selectedTags, variantActive);
+            sections[sectionName] = normalizeSectionEntries(sectionName, entries, preferredFlavors, selectedTags, variantActive, locale);
             if (sectionName === 'publications') {
                 const existingResearchPublications = Array.isArray(sections.research_publications)
                     ? sections.research_publications
