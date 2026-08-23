@@ -171,8 +171,10 @@ describe('normalizeCompatibilityCvYaml CJK résumé shapes', () => {
     const cv = normalizeCv({ name: '김윤서', date_of_birth: '2003-04-24' });
 
     expect(cv.date_of_birth).toBeUndefined();
+    // RenderCV declares `url` as nullable without a default, so it has to be
+    // present even when there is nothing to link to.
     expect(cv.custom_connections).toEqual([
-      { fontawesome_icon: 'cake-candles', placeholder: '2003-04-24' }
+      { fontawesome_icon: 'cake-candles', placeholder: '2003-04-24', url: null }
     ]);
   });
 

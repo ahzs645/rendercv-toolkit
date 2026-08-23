@@ -7757,7 +7757,11 @@ function normalizeDateOfBirthConnection(cvData) {
     (entry) => String(entry.placeholder ?? "") === dateOfBirth
   );
   if (!alreadyPresent) {
-    customConnections.push({ fontawesome_icon: "cake-candles", placeholder: dateOfBirth });
+    customConnections.push({
+      fontawesome_icon: "cake-candles",
+      placeholder: dateOfBirth,
+      url: null
+    });
   }
   cvData.custom_connections = customConnections;
 }

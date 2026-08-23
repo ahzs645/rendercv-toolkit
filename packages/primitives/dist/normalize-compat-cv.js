@@ -929,9 +929,13 @@ function normalizeDateOfBirthConnection(cvData) {
     const customConnections = asCustomConnections(cvData);
     const alreadyPresent = customConnections.some((entry) => String(entry.placeholder ?? '') === dateOfBirth);
     if (!alreadyPresent) {
-        // `url` is optional on RenderCV's CustomConnection, and a birth date has
-        // nothing sensible to link to.
-        customConnections.push({ fontawesome_icon: 'cake-candles', placeholder: dateOfBirth });
+        // A birth date has nothing to link to, but RenderCV's CustomConnection
+        // declares `url` as nullable without a default, so it must still be set.
+        customConnections.push({
+            fontawesome_icon: 'cake-candles',
+            placeholder: dateOfBirth,
+            url: null
+        });
     }
     cvData.custom_connections = customConnections;
 }
