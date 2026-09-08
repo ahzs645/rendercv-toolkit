@@ -148,6 +148,7 @@ const KNOWN_ENTRY_TYPES: KnownEntryType[] = [
     identity: ['name'],
     fields: [
       'name',
+      'technologies',
       'date',
       'start_date',
       'end_date',

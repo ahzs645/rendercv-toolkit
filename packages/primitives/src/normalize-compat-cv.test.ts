@@ -255,3 +255,9 @@ describe('normalizeCompatibilityCvYaml alternate names per theme', () => {
     }
   });
 });
+
+it('preserves project technologies through import instead of folding them into summary', () => {
+  const entry = { name: 'Planet', technologies: 'React Native, Expo Go', summary: 'A student project.' };
+  expect(normalizeSections({ projects: [entry] }).projects).toEqual([entry]);
+  expect(normalizeSections({ 'Projects & Leadership': [entry] })['Projects & Leadership']).toEqual([entry]);
+});
