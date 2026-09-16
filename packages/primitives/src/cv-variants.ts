@@ -84,3 +84,44 @@ export function parseCvVariantsYaml(content: string, options: { maxBytes?: numbe
 
   return variants;
 }
+
+/**
+ * Inverse of {@link parseCvVariantsYaml}: render authored variants back to the
+ * `variants:` document the loader and the `?variants=` URL parameter accept.
+ *
+ * Absent, blank and empty-list fields are dropped rather than emitted as `null`
+ * or `[]`, so a variant that only carries a description stays a one-line entry
+ * and the result round-trips through the parser unchanged.
+ */
+export function serializeCvVariantsYaml(variants: CvVariants): string {
+  const cleaned: Record<string, UnknownRecord> = {};
+
+  for (const [key, definition] of Object.entries(variants)) {
+    const entry: UnknownRecord = {};
+
+    const description = definition.description?.trim();
+    if (description) {
+      entry.description = description;
+    }
+    if (definition.tags?.length) {
+      entry.tags = definition.tags;
+    }
+    if (definition.flavors?.length) {
+      entry.flavors = definition.flavors;
+    }
+    if (definition.exclude_sections?.length) {
+      entry.exclude_sections = definition.exclude_sections;
+    }
+
+    const excludeEntries = Object.fromEntries(
+      Object.entries(definition.exclude_entries ?? {}).filter(([, fingerprints]) => fingerprints.length > 0)
+    );
+    if (Object.keys(excludeEntries).length > 0) {
+      entry.exclude_entries = excludeEntries;
+    }
+
+    cleaned[key] = entry;
+  }
+
+  return YAML.stringify({ variants: cleaned });
+}
