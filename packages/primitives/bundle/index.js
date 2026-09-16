@@ -8341,6 +8341,33 @@ function parseCvVariantsYaml(content, options = {}) {
   }
   return variants;
 }
+function serializeCvVariantsYaml(variants) {
+  const cleaned = {};
+  for (const [key, definition] of Object.entries(variants)) {
+    const entry = {};
+    const description = definition.description?.trim();
+    if (description) {
+      entry.description = description;
+    }
+    if (definition.tags?.length) {
+      entry.tags = definition.tags;
+    }
+    if (definition.flavors?.length) {
+      entry.flavors = definition.flavors;
+    }
+    if (definition.exclude_sections?.length) {
+      entry.exclude_sections = definition.exclude_sections;
+    }
+    const excludeEntries = Object.fromEntries(
+      Object.entries(definition.exclude_entries ?? {}).filter(([, fingerprints]) => fingerprints.length > 0)
+    );
+    if (Object.keys(excludeEntries).length > 0) {
+      entry.exclude_entries = excludeEntries;
+    }
+    cleaned[key] = entry;
+  }
+  return browser_default.stringify({ variants: cleaned });
+}
 export {
   ARCHIVED_TAG,
   ENGLISH_DATE_LOCALE,
@@ -8359,6 +8386,7 @@ export {
   repairFlattenedPositionDatesInCvYaml,
   resolveDateLocale,
   restoreAhmadStylePositionMarkersInCvYaml,
+  serializeCvVariantsYaml,
   stripPositionMarkersFromCvYaml,
   themeRendersHeadline,
   themeUsesPositionSpacingMarkers,
