@@ -261,3 +261,77 @@ it('preserves project technologies through import instead of folding them into s
   expect(normalizeSections({ projects: [entry] }).projects).toEqual([entry]);
   expect(normalizeSections({ 'Projects & Leadership': [entry] })['Projects & Leadership']).toEqual([entry]);
 });
+
+// `show: false` (and the `showing: false` spelling) keeps an entry in the YAML
+// but out of the rendered CV; hosts filter on it before rendering. Imports
+// persist the normalized YAML, so the flag has to survive normalization on
+// every section path, and must never be folded into text.
+describe('normalizeCompatibilityCvYaml entry visibility flags', () => {
+  // The flag may stay as a key, but must not leak into any text field.
+  function expectNoFlagText(entries: unknown[]) {
+    const withoutFlagKeys = entries.map((entry) => {
+      if (typeof entry !== 'object' || entry === null) return entry;
+      const { show: _show, showing: _showing, ...rest } = entry as Record<string, unknown>;
+      return rest;
+    });
+    expect(JSON.stringify(withoutFlagKeys)).not.toMatch(/show/i);
+  }
+
+  it('keeps the flag on experience and volunteer entries instead of folding it into the summary', () => {
+    const sections = normalizeSections({
+      experience: [
+        { company: 'Visible', position: 'Engineer', start_date: '2020-01' },
+        { company: 'Old job', position: 'Clerk', start_date: '2019-01', show: false }
+      ],
+      volunteer: [{ company: 'Club', position: 'Volunteer', start_date: '2018-01', showing: false }]
+    });
+
+    expect(sections.experience).toEqual([
+      expect.not.objectContaining({ show: expect.anything() }),
+      expect.objectContaining({ company: 'Old job', show: false })
+    ]);
+    expect(sections.volunteer).toEqual([expect.objectContaining({ company: 'Club', showing: false })]);
+    expectNoFlagText(sections.experience as unknown[]);
+    expect(String((sections.experience[1] as { summary?: string }).summary ?? '')).toBe('');
+  });
+
+  it('carries a flag on a nested position to that position’s row only', () => {
+    const sections = normalizeSections({
+      experience: [
+        {
+          company: 'Resident Life',
+          positions: [
+            { title: 'Senior', start_date: '2023-09', end_date: '2024-04' },
+            { title: 'Junior', start_date: '2021-08', end_date: '2023-04', show: false }
+          ]
+        }
+      ]
+    });
+
+    const rows = sections.experience as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).not.toHaveProperty('show');
+    expect(rows[1]).toMatchObject({ show: false });
+  });
+
+  it('keeps the flag on rebuilt and unknown entry shapes without using it as text', () => {
+    const sections = normalizeSections({
+      publications: [{ title: 'Paper', authors: ['A'], date: '2020', show: false }],
+      teaching: [{ course: 'Biology 101', show: false }],
+      supervisory_activities: [{ masters_students: 3, show: false }],
+      media: [{ name: 'Interview', show: false }],
+      memberships: [{ name: 'Society', show: false }],
+      event_administration: [{ name: 'Conference', show: false }],
+      awards: [{ name: 'Prize', date: '2020', show: false }],
+      hobbies: [{ activity: 'Climbing', show: false }]
+    });
+
+    for (const [key, entries] of Object.entries(sections)) {
+      expect(entries, key).toEqual(
+        (entries as unknown[]).map(() => expect.objectContaining({ show: false }))
+      );
+      expectNoFlagText(entries as unknown[]);
+    }
+    expect(sections.hobbies).toEqual([expect.objectContaining({ name: 'Climbing' })]);
+  });
+});

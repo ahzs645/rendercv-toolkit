@@ -48,7 +48,32 @@ const TOP_LEVEL_SOCIAL_FIELD_MAP: Record<string, string> = {
 };
 const POSITION_SPACING_SAME_MARKER = 'RCVSPACINGSAME:';
 const POSITION_SPACING_DIFF_MARKER = 'RCVSPACINGDIFF:';
+/**
+ * `show: false` (or `showing: false`) keeps an entry in the YAML but out of the
+ * rendered CV; hosts drop flagged entries before rendering. Imports persist the
+ * normalized YAML, so every path below keeps these keys as they are and never
+ * folds them into summary text or picks them as a title.
+ */
+const ENTRY_VISIBILITY_FIELDS = ['show', 'showing'] as const;
+const ENTRY_VISIBILITY_FIELD_SET = new Set<string>(ENTRY_VISIBILITY_FIELDS);
+
+function isVisibilityField(key: string) {
+  return ENTRY_VISIBILITY_FIELD_SET.has(key);
+}
+
+/** Copy the visibility flags of `source` onto an entry rebuilt from it. */
+function withVisibility(source: UnknownRecord, target: UnknownRecord): UnknownRecord {
+  const next: UnknownRecord = { ...target };
+  for (const key of ENTRY_VISIBILITY_FIELDS) {
+    if (source[key] != null) {
+      next[key] = source[key];
+    }
+  }
+  return next;
+}
+
 const ENTRY_META_FIELDS = new Set([
+  ...ENTRY_VISIBILITY_FIELDS,
   'start_date',
   'end_date',
   'date',
@@ -487,7 +512,8 @@ const EXPERIENCE_SHAPE_FIELDS = new Set([
   'highlights',
   'url',
   'doi',
-  'positions'
+  'positions',
+  ...ENTRY_VISIBILITY_FIELDS
 ]);
 
 function foldStrayExperienceFields(entry: UnknownRecord) {
@@ -592,7 +618,7 @@ function foldStrayFieldsIntoKnownEntry(entry: UnknownRecord, entryType: KnownEnt
   const strayParts: string[] = [];
 
   for (const [key, value] of Object.entries({ ...kept })) {
-    if (knownFields.has(key)) {
+    if (knownFields.has(key) || isVisibilityField(key)) {
       continue;
     }
     if (value == null || value === '' || Array.isArray(value) || isRecord(value)) {
@@ -665,7 +691,8 @@ function coerceUnknownEntry(entry: unknown) {
       key === 'date' ||
       key === 'location' ||
       key === 'url' ||
-      key === 'doi'
+      key === 'doi' ||
+      isVisibilityField(key)
     ) {
       continue;
     }
@@ -856,7 +883,9 @@ function expandNestedPositions(
       item.location = position.location;
     }
 
-    return cleanMapping(item);
+    // A flag on the role hides only that role's row; one on the employer
+    // already reached every row through baseEntry.
+    return cleanMapping(withVisibility(position, item));
   });
 }
 
@@ -915,7 +944,7 @@ function normalizePublications(
     const url = item.url ?? (doi ? `https://doi.org/${doi}` : undefined);
 
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(item, {
         name: item.title,
         date: item.date,
         summary: joinParts([
@@ -928,7 +957,7 @@ function normalizePublications(
           doi ? `DOI: ${doi}` : undefined,
           url && !doi ? url : undefined
         ])
-      })
+      }))
     ];
   });
 }
@@ -956,7 +985,7 @@ function normalizeTeachingEntries(
     const organization = item.organization ?? item.institution ?? item.company;
 
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(item, {
         company,
         position,
         location: item.location,
@@ -969,7 +998,7 @@ function normalizeTeachingEntries(
           item.summary
         ]),
         highlights: item.highlights
-      })
+      }))
     ];
   });
 }
@@ -991,12 +1020,14 @@ function normalizeSupervisoryActivities(
     }
 
     return Object.entries(prepared)
-      .filter(([, value]) => value != null)
+      .filter(([key, value]) => value != null && !isVisibilityField(key))
       .map(([key, value]) =>
-        cleanMapping({
-          label: key.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
-          details: String(value)
-        })
+        cleanMapping(
+          withVisibility(prepared, {
+            label: key.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+            details: String(value)
+          })
+        )
       );
   });
 }
@@ -1274,7 +1305,7 @@ function normalizeMediaEntries(
     }
 
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(normalized, {
         name: normalized.name,
         location: normalized.location,
         date: normalized.date,
@@ -1287,7 +1318,7 @@ function normalizeMediaEntries(
           normalized.interviewer ? `Interviewer: ${normalized.interviewer}` : undefined
         ]),
         highlights: normalized.highlights
-      })
+      }))
     ];
   });
 }
@@ -1310,11 +1341,11 @@ function normalizeMembershipEntries(
     }
 
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(normalized, {
         name: normalized.name,
         date: normalized.start_date,
         summary: joinParts([normalized.role, normalized.organization])
-      })
+      }))
     ];
   });
 }
@@ -1337,13 +1368,13 @@ function normalizeEventAdministrationEntries(
     }
 
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(normalized, {
         name: normalized.name,
         location: normalized.location,
         date: normalized.date,
         summary: joinParts([normalized.type, normalized.role]),
         highlights: normalized.highlights
-      })
+      }))
     ];
   });
 }

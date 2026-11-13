@@ -6924,7 +6924,22 @@ var TOP_LEVEL_SOCIAL_FIELD_MAP = {
 };
 var POSITION_SPACING_SAME_MARKER = "RCVSPACINGSAME:";
 var POSITION_SPACING_DIFF_MARKER = "RCVSPACINGDIFF:";
+var ENTRY_VISIBILITY_FIELDS = ["show", "showing"];
+var ENTRY_VISIBILITY_FIELD_SET = new Set(ENTRY_VISIBILITY_FIELDS);
+function isVisibilityField(key) {
+  return ENTRY_VISIBILITY_FIELD_SET.has(key);
+}
+function withVisibility(source, target) {
+  const next = { ...target };
+  for (const key of ENTRY_VISIBILITY_FIELDS) {
+    if (source[key] != null) {
+      next[key] = source[key];
+    }
+  }
+  return next;
+}
 var ENTRY_META_FIELDS = /* @__PURE__ */ new Set([
+  ...ENTRY_VISIBILITY_FIELDS,
   "start_date",
   "end_date",
   "date",
@@ -7262,7 +7277,8 @@ var EXPERIENCE_SHAPE_FIELDS = /* @__PURE__ */ new Set([
   "highlights",
   "url",
   "doi",
-  "positions"
+  "positions",
+  ...ENTRY_VISIBILITY_FIELDS
 ]);
 function foldStrayExperienceFields(entry) {
   const kept = { ...entry };
@@ -7333,7 +7349,7 @@ function foldStrayFieldsIntoKnownEntry(entry, entryType) {
   const knownFields = new Set(entryType.fields);
   const strayParts = [];
   for (const [key, value] of Object.entries({ ...kept })) {
-    if (knownFields.has(key)) {
+    if (knownFields.has(key) || isVisibilityField(key)) {
       continue;
     }
     if (value == null || value === "" || Array.isArray(value) || isRecord3(value)) {
@@ -7385,7 +7401,7 @@ function coerceUnknownEntry(entry) {
   }
   const summaryParts = coerced.summary ? [String(coerced.summary)] : [];
   for (const [key, value] of Object.entries({ ...coerced })) {
-    if (key === "name" || key === "summary" || key === "highlights" || key === "start_date" || key === "end_date" || key === "date" || key === "location" || key === "url" || key === "doi") {
+    if (key === "name" || key === "summary" || key === "highlights" || key === "start_date" || key === "end_date" || key === "date" || key === "location" || key === "url" || key === "doi" || isVisibilityField(key)) {
       continue;
     }
     if (value == null || value === "" || Array.isArray(value) && value.length === 0 || isRecord3(value)) {
@@ -7526,7 +7542,7 @@ function expandNestedPositions(entry, preferredFlavors, selectedTags, variantAct
     if (position.location) {
       item.location = position.location;
     }
-    return cleanMapping(item);
+    return cleanMapping(withVisibility(position, item));
   });
 }
 function prepareVariantRecord(entry, preferredFlavors, selectedTags, variantActive) {
@@ -7567,7 +7583,7 @@ function normalizePublications(entries, preferredFlavors, selectedTags, variantA
     const doi = item.doi;
     const url = item.url ?? (doi ? `https://doi.org/${doi}` : void 0);
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(item, {
         name: item.title,
         date: item.date,
         summary: joinParts([
@@ -7580,7 +7596,7 @@ function normalizePublications(entries, preferredFlavors, selectedTags, variantA
           doi ? `DOI: ${doi}` : void 0,
           url && !doi ? url : void 0
         ])
-      })
+      }))
     ];
   });
 }
@@ -7599,7 +7615,7 @@ function normalizeTeachingEntries(entries, preferredFlavors, selectedTags, varia
     const position = item.position ?? item.role ?? "Instructor";
     const organization = item.organization ?? item.institution ?? item.company;
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(item, {
         company,
         position,
         location: item.location,
@@ -7612,7 +7628,7 @@ function normalizeTeachingEntries(entries, preferredFlavors, selectedTags, varia
           item.summary
         ]),
         highlights: item.highlights
-      })
+      }))
     ];
   });
 }
@@ -7625,11 +7641,13 @@ function normalizeSupervisoryActivities(entries, preferredFlavors, selectedTags,
     if ("label" in prepared && "details" in prepared) {
       return [cleanMapping(prepared)];
     }
-    return Object.entries(prepared).filter(([, value]) => value != null).map(
-      ([key, value]) => cleanMapping({
-        label: key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
-        details: String(value)
-      })
+    return Object.entries(prepared).filter(([key, value]) => value != null && !isVisibilityField(key)).map(
+      ([key, value]) => cleanMapping(
+        withVisibility(prepared, {
+          label: key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+          details: String(value)
+        })
+      )
     );
   });
 }
@@ -7817,7 +7835,7 @@ function normalizeMediaEntries(entries, preferredFlavors, selectedTags, variantA
       return [];
     }
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(normalized, {
         name: normalized.name,
         location: normalized.location,
         date: normalized.date,
@@ -7830,7 +7848,7 @@ function normalizeMediaEntries(entries, preferredFlavors, selectedTags, variantA
           normalized.interviewer ? `Interviewer: ${normalized.interviewer}` : void 0
         ]),
         highlights: normalized.highlights
-      })
+      }))
     ];
   });
 }
@@ -7845,11 +7863,11 @@ function normalizeMembershipEntries(entries, preferredFlavors, selectedTags, var
       return [];
     }
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(normalized, {
         name: normalized.name,
         date: normalized.start_date,
         summary: joinParts([normalized.role, normalized.organization])
-      })
+      }))
     ];
   });
 }
@@ -7864,13 +7882,13 @@ function normalizeEventAdministrationEntries(entries, preferredFlavors, selected
       return [];
     }
     return [
-      cleanMapping({
+      cleanMapping(withVisibility(normalized, {
         name: normalized.name,
         location: normalized.location,
         date: normalized.date,
         summary: joinParts([normalized.type, normalized.role]),
         highlights: normalized.highlights
-      })
+      }))
     ];
   });
 }
